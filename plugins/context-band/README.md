@@ -5,7 +5,7 @@ A Claude Code mod for the Claude desktop app's Code tab and the terminal. It dra
 ## Getting started
 
 1. In the Claude desktop app's Code tab or in a terminal session, run `/plugin marketplace add mgstegmaier/claude-plugins`. You only need this once.
-2. Run `/plugin install context-band@heckatron`.
+2. Run `/plugin install context-band@mgstegmaier`.
 3. Run `/reload-plugins`, or start a new session.
 4. Send any message. After Claude replies, the card appears above the prompt.
 

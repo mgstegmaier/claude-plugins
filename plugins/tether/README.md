@@ -7,7 +7,7 @@ Adapted from ClariSortAi's Terminal Desk (MIT, see `LICENSE`).
 ## Getting started
 
 1. In the Claude desktop app's Code tab or in a terminal session, run `/plugin marketplace add mgstegmaier/claude-plugins`. You only need this once.
-2. Run `/plugin install tether@heckatron`.
+2. Run `/plugin install tether@mgstegmaier`.
 3. Run `/reload-plugins`, or start a new session.
 4. Run `/tether` to open the pane.
 

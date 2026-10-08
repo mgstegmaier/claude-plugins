@@ -1,12 +1,12 @@
 # claude-plugins
 home-grown, cage-free claude plugins, skills, mods, and more
 
-This repo is a Claude Code plugin marketplace named `heckatron`. Each plugin lives in its own folder under `plugins/`.
+This repo is a Claude Code plugin marketplace named `mgstegmaier`. Each plugin lives in its own folder under `plugins/`.
 
 ## Install
 
 1. In Claude Code, run `/plugin marketplace add mgstegmaier/claude-plugins`. You only need this once.
-2. Run `/plugin install <name>@heckatron`, for example `/plugin install tether@heckatron`.
+2. Run `/plugin install <name>@mgstegmaier`, for example `/plugin install tether@mgstegmaier`.
 3. Run `/reload-plugins`, or start a new session.
 
 ## Plugins

@@ -1,9 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
-  "name": "heckatron",
-  "description": "Home-grown, cage-free Claude Code plugins, skills and mods by Heckatron.",
+  "name": "mgstegmaier",
+  "description": "Home-grown, cage-free Claude Code plugins, skills and mods by mgstegmaier.",
   "owner": {
-    "name": "Heckatron",
+    "name": "mgstegmaier",
     "url": "https://github.com/mgstegmaier"
   },
   "metadata": {
