@@ -46,7 +46,7 @@
       "displayName": "Vox Calibre writing style",
       "description": "Vox Calibre, the Upland house writing style for Claude Code: plain language with a human voice. It is the output style for every reply while the plugin is enabled. For claude.ai chat, install vox-calibre-chat instead.",
       "source": "./plugins/vox-calibre",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "productivity",
       "keywords": [
         "writing",
@@ -60,7 +60,7 @@
       "displayName": "Vox Calibre for claude.ai chat",
       "description": "Vox Calibre, the Upland house writing style for claude.ai chat, which has no output styles. The rules load as a skill whenever you ask for writing. In Claude Code, install vox-calibre instead.",
       "source": "./plugins/vox-calibre-chat",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "productivity",
       "keywords": [
         "writing",

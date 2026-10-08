@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "vox-calibre-chat",
   "description": "Vox Calibre, the Upland house writing style for claude.ai chat, which has no output styles. The rules load as a skill whenever you ask for writing. In Claude Code, install vox-calibre instead.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": { "name": "Michael Stegmaier" },
   "repository": "https://github.com/mgstegmaier/claude-plugins",
   "keywords": ["writing", "style", "skill", "plain-language", "claude-ai"]
