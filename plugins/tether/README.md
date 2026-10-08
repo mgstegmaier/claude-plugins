@@ -2,7 +2,7 @@
 
 A session dashboard for Claude Code: a `/tether` pane of folding sections for what Claude is waiting on you for, what it's assuming, what it put off, and where your context and money went.
 
-Adapted from ClariSortAi's Terminal Desk (MIT).
+Adapted from ClariSortAi's Terminal Desk (MIT, see `LICENSE`).
 
 ## Getting started
 
