@@ -793,7 +793,7 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const ui = $.ui.resolve(e)
-    const { Box, Button, Text } = ui
+    const { Box, Button, Markdown, Text } = ui
     // Mobile draws no text field; there the note shows but can't be edited.
     const Input = 'Input' in ui ? ui.Input : undefined
     // The terminal has no Svg; it gets the text bar.
@@ -1108,7 +1108,8 @@ export const register: Register = on => {
           ...(s.touched.length > 0 ? [<Text key="ch-files" dimColor>{`Files edited (${s.touched.length})`}</Text>] : []),
           ...[...s.touched].reverse().slice(0, 8).map((one, i) => (
             <Box key={`ch-f${i}`} flexDirection="row" justifyContent="space-between">
-              <Text wrap="truncate-end">{one.path.split(/[\\/]/).slice(-2).join('/')}</Text>
+              {/* A file: link opens the file as the app opens file links. */}
+              <Markdown text={`[${one.path.split(/[\\/]/).slice(-2).join('/').replace(/[[\]]/g, '')}](file://${encodeURI(one.path)})`} />
               <Text dimColor>{one.edits === 1 ? '1 edit' : `${one.edits} edits`}</Text>
             </Box>
           )),

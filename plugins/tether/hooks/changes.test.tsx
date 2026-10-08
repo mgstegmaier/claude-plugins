@@ -33,6 +33,17 @@ test('edits count per file, and the check state follows the last edit', () => {
   expect(checkState(blank)).toBe('none')
 })
 
+test('notes and other prose list as edited but never ask for a check', () => {
+  let s = { ...blank, ...footprint(blank, 'Write', { file_path: '/vault/meetings/1-1.md' }, 10, false, null) } as Stats
+  expect(s.touched.map(one => one.path)).toEqual(['/vault/meetings/1-1.md'])
+  expect(checkState(s)).toBe('none')
+  s = { ...s, ...footprint(s, 'Bash', { command: 'pytest' }, 20, false, null) } as Stats
+  s = { ...s, ...footprint(s, 'Edit', { file_path: '/vault/notes.txt' }, 30, false, null) } as Stats
+  expect(checkState(s)).toBe('none')
+  s = { ...s, ...footprint(s, 'Edit', { file_path: '/repo/app.py' }, 40, false, null) } as Stats
+  expect(checkState(s)).toBe('unchecked')
+})
+
 test('the changes section starts folded with a summary, and unfolds to the log', async ($, on) => {
   mock.clock(on)
   on('tool.call', () => ({ result: '' }) as never)
@@ -44,7 +55,7 @@ test('the changes section starts folded with a summary, and unfolds to the log',
   expect(await pane.find({ type: 'Text', text: /git push -u origin main/ })).toBeUndefined()
   await pane.press({ key: 'fold-changes' })
   expect(await pane.find({ type: 'Text', text: '✓ git push -u origin main' })).toBeDefined()
-  expect(await pane.find({ type: 'Text', text: 'hooks/a.ts' })).toBeDefined()
+  expect(await pane.find({ type: 'Markdown', text: '[hooks/a.ts](file:///repo/hooks/a.ts)' })).toBeDefined()
   expect(await pane.find({ type: 'Text', text: /Not checked since the last edit/ })).toBeDefined()
   await pane.unmount()
 })
