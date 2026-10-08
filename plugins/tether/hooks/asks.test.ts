@@ -111,10 +111,10 @@ for (const surface of ['terminal', 'desktop'] as const) {
     await pane.press({ key: 'cancel5' })
     expect(filled).toEqual([
       'Let\'s discuss "Delete the remote branch?": ',
-      'Denied: Delete the remote branch?',
-      'For "Which board?", I pick: Platform',
+      'Denied: Delete the remote branch?\n\n',
+      'For "Which board?", I pick: Platform\n\n',
       'Answer to "What is the board id?": ',
-      'Not doing this, plan around it: Run setup.py',
+      'Not doing this, plan around it: Run setup.py\n\n',
     ])
     expect(sent).toEqual([])
     expect(toasts).not.toContain('Sent')
