@@ -1,6 +1,6 @@
 # vox-calibre
 
-Vox Calibre is the Upland house writing style, packaged as a Claude Code output style. It's plain
+Vox Calibre is a writing style, packaged as a Claude Code output style. It's plain
 language with a human voice. The precision rules come from ASD-STE100 (the simplified technical
 English standard), and the voice comes from the Microsoft and GOV.UK plain-language guides.
 Claude uses short everyday words, names the actor, puts numbers where adjectives would go, and
@@ -11,8 +11,7 @@ This plugin is for Claude Code. claude.ai chat has no output styles, so chat use
 
 ## Getting started
 
-You need a GitHub login with access to this repository. If you've already added the marketplace
-for another plugin from it, skip the first line.
+If you've already added the marketplace for another plugin from it, skip the first line.
 
 1. In Claude Code, type these one at a time:
 
