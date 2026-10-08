@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "heckatron",
+  "description": "Home-grown, cage-free Claude Code plugins, skills and mods by Michael Stegmaier.",
+  "owner": {
+    "name": "Michael Stegmaier",
+    "url": "https://github.com/mgstegmaier"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "context-band",
+      "displayName": "Context card",
+      "description": "A mod for the Claude desktop app and the terminal: a card above the prompt showing how full the context window is, what the session has cost at API rates, and what fills it (system prompt, tools, MCP, memory, skills, and the conversation split into prompts, injected context, replies and tool results), in Anthropic's palette. Click to expand the legend; hover a row for what it holds and what fills it most. Needs Claude Code 2.1.288 or later.",
+      "source": "./plugins/context-band",
+      "version": "0.1.5",
+      "category": "productivity",
+      "keywords": [
+        "mod",
+        "context",
+        "tokens",
+        "desktop",
+        "terminal"
+      ]
+    },
+    {
+      "name": "tether",
+      "displayName": "Tether",
+      "description": "A mod for the Claude desktop app and the terminal: a /tether pane with folding sections for a working-on note, the context bar, the assumptions Claude is making (Approve or Reject each), work it put off, action items (everything Claude is waiting on you for), subagents and cost. Buttons draft into the prompt box; nothing sends until you press Enter. Needs Claude Code 2.1.289 or later. Adapted from ClariSortAi's Terminal Desk (MIT).",
+      "source": "./plugins/tether",
+      "version": "0.4.0",
+      "category": "productivity",
+      "keywords": [
+        "mod",
+        "dashboard",
+        "context",
+        "assumptions",
+        "desktop",
+        "terminal"
+      ]
+    }
+  ]
+}
