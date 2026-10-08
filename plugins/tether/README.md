@@ -19,7 +19,7 @@ You need Claude Code 2.1.289 or later. To check your version, run `claude --vers
 
 No button in the pane sends anything. Each one puts a message in your prompt box, and you press Enter to send it as it stands or edit it first.
 
-**Working on** is a line about what this session is for. It follows the session's title, which arrives with your second prompt and changes when you rename the session. Edit opens it as a text field: type your own note and press Enter to save it, and from then on the title no longer replaces it. Save an empty note to go back to following the title. Your note never renames the session. The note belongs to the session, and Claude doesn't read it.
+**Working on** is a line about what this session is for. It follows the session's title, which arrives with your second prompt and changes when you rename the session. Edit opens it as a text field: type your own note and press Enter to save it, and from then on the title no longer replaces it. Save an empty note to go back to following the title. Your note never renames the session. Folded, the section shows the note on its header line, cut with an ellipsis when it's long; unfold it to see the whole note and Edit. The note belongs to the session, and Claude doesn't read it.
 
 **Context** is the same bar and legend as the `context-band` card: what fills the context window, in Anthropic's palette, with a tick where Claude Code compacts. On the desktop app, hover a part of the bar for its detail.
 
