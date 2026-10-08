@@ -70,7 +70,10 @@ const CHECK_SYSTEM = [
   'Write "Push branch fix/retry and open a pull request against main", never "Push it".',
   'Leave out: work the report says was skipped on purpose with a reason; decisions or actions only the user can take; headings and list lead-ins such as "What I left alone:"; anything already done; anything you cannot make concrete from the report.',
   'At most three, one per line, no numbering, no commentary. If there are none, reply with the single word NONE.',
+  'You may also get the loose ends already open, each with an id such as U3. If the request or the report shows one is done, no longer wanted, or moot, end with one line "RESOLVED: U3 U7". Leave that line out when none are.',
 ].join(' ')
+// ponytail: a loose end open this many main turns is stale and clears itself; tune by feel.
+const STALE_TURNS = 10
 // How an answer words work it is putting off.
 const SAID = /\b(for now|follow[- ]up|out of scope|not yet|I (?:didn't|did not|haven't|have not|skipped|left)\b|(?:do|handle|add|fix|revisit|address|tackle) (?:that|this|it|them|those) later|in a later (?:pass|step|turn|change|PR)|still needs?|remains? to be|placeholder|stubbed|untested|not (?:verified|tested|implemented|wired up))/i
 // What put-off work looks like once it is written into a file.
@@ -108,7 +111,7 @@ const recordUndone = async ($: EngineInterface, found: string[], source: Undone[
       nextUndone: s.nextUndone + fresh.length,
       undone: [
         ...s.undone,
-        ...fresh.map((text, i): Undone => ({ id: s.nextUndone + i, text, source, at, status: 'open' })),
+        ...fresh.map((text, i): Undone => ({ id: s.nextUndone + i, text, source, at, turn: s.turns, status: 'open' })),
       ].slice(-40),
     }
   })
@@ -118,16 +121,31 @@ const recordUndone = async ($: EngineInterface, found: string[], source: Undone[
   }
 }
 
+// Marks loose ends cleared: by id, or every open one recorded `STALE_TURNS` main turns ago.
+const clearUndone = ($: EngineInterface, ids: number[], now?: number) =>
+  update($, stats, raw => {
+    const s = whole(raw)
+    const isStale = (one: Undone) => now !== undefined && now - (one.turn ?? 0) >= STALE_TURNS
+
+    return {
+      ...s,
+      undone: s.undone.map(one => (one.status === 'open' && (ids.includes(one.id) || isStale(one)) ? { ...one, status: 'cleared' as const } : one)),
+    }
+  })
+
 // A second, small model reads the request against the final report and writes
 // each loose end as a standalone action. It sees the report and not the tool
 // calls, so it finds what the report admits to. `hints` are the report's own
-// put-off sentences, which alone are too thin to act on.
+// put-off sentences, which alone are too thin to act on. It also gets the open
+// loose ends and names the ones the request or report settled, which clear.
 const check = async ($: EngineInterface, asked: string, answer: string, hints: string[], source: Undone['source']): Promise<void> => {
   const flagged = hints.length ? `\n\nSENTENCES IN THE REPORT THAT PUT WORK OFF:\n${hints.join('\n')}` : ''
+  const open = whole(await read($, stats)).undone.filter(one => one.status === 'open')
+  const listed = open.length ? `\n\nLOOSE ENDS ALREADY OPEN:\n${open.map(one => `U${one.id} ${one.text}`).join('\n')}` : ''
   const reply = await $.model.complete({
     model: CHECKER,
     system: CHECK_SYSTEM,
-    prompt: `REQUEST:\n${asked || '(not captured)'}\n\nFINAL REPORT:\n${answer.slice(-6000)}${flagged}`,
+    prompt: `REQUEST:\n${asked || '(not captured)'}\n\nFINAL REPORT:\n${answer.slice(-6000)}${flagged}${listed}`,
     maxTokens: 300,
     timeoutMs: 30_000,
   })
@@ -138,12 +156,19 @@ const check = async ($: EngineInterface, asked: string, answer: string, hints: s
     return
   }
 
-  const found = reply.text
-    .split('\n')
-    .map(row => row.replace(/^[\s\d.*-]+/, '').trim().slice(0, 200))
-    .filter(row => row !== '' && !/^none\.?$/i.test(row))
+  const rows = reply.text.split('\n').map(row => row.replace(/^[\s\d.*-]+/, '').trim())
+  const resolved = rows
+    .filter(row => /^resolved:/i.test(row))
+    .flatMap(row => [...row.matchAll(/U(\d+)/gi)].map(m => Number(m[1])))
+    .filter(id => open.some(one => one.id === id))
+  const found = rows
+    .filter(row => row !== '' && !/^none\.?$/i.test(row) && !/^resolved:/i.test(row))
+    .map(row => row.slice(0, 200))
     .slice(0, 3)
 
+  if (resolved.length > 0) {
+    await clearUndone($, resolved)
+  }
   await recordUndone($, found, source)
 }
 
@@ -617,11 +642,13 @@ export const register: Register = on => {
     if (agentId === undefined) {
       await measure($)
 
+      await clearUndone($, [], whole(await read($, stats)).turns)
       const turn = whole(await read($, stats))
       await update($, stats, raw => ({ ...whole(raw), turnTools: 0 }))
 
       if (e.reason === 'answer') {
         const hints = deferrals(e.answer)
+        const hasOpen = turn.undone.some(one => one.status === 'open')
 
         if (!isTracked && looksLikeAsk(e.answer)) {
           // Not awaited: off the turn's path.
@@ -632,7 +659,8 @@ export const register: Register = on => {
 
         // A put-off sentence alone ("I haven't deployed it.") is too thin to act on,
         // so it goes through the checker to come back as a concrete action, or not at all.
-        if (turn.isChecking && (hints.length > 0 || (turn.turnTools >= CHECK_MIN_TOOLS && turn.lastPrompt !== ''))) {
+        // While any loose end is open the checker runs every turn, to clear the ones now settled.
+        if (turn.isChecking && (hints.length > 0 || hasOpen || (turn.turnTools >= CHECK_MIN_TOOLS && turn.lastPrompt !== ''))) {
           // Not awaited: the turn ends now and the finding arrives when it does.
           check($, turn.lastPrompt, e.answer, hints, hints.length > 0 ? 'said' : 'checker').catch((err: unknown) =>
             $.ui.log(`tether checker: ${String(err)}`, { to: 'debug' }),

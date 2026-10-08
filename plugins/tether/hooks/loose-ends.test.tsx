@@ -70,3 +70,38 @@ test('Clear drops one loose end and Do now drafts another', async ($, on) => {
   expect(filled).toEqual(['You left this undone: "Finish "// FIXME parse dates" in b.ts". Do it now.\n\n'])
   await pane.unmount()
 })
+
+test('the checker clears open loose ends that the latest report settles', async ($, on) => {
+  mock.clock(on)
+  quiet(on)
+  const prompts: string[] = []
+  let reply = 'Push branch fix/retry and open a pull request against main'
+  on('model.complete', ($, e) => (prompts.push(e.prompt), { value: { isAnswered: true, text: reply, usage: {} } }) as never)
+  await $.turn.complete(answer("I haven't pushed it."))
+  await new Promise(r => setTimeout(r, 0))
+
+  // The next turn has no put-off sentence, but a loose end is open, so the checker still runs and sees it.
+  reply = 'NONE\nRESOLVED: U1'
+  await $.turn.complete(answer('Pushed fix/retry and opened the pull request.'))
+  await new Promise(r => setTimeout(r, 0))
+  expect(prompts[1]).toContain('U1 Push branch fix/retry')
+
+  const pane = await $.ui.mount({ plugin: 'tether', surface: 'desktop', component: 'Pane', requestId: 'tether', props: { bodyColumns: 90 } as never })
+  expect(await pane.find({ type: 'Text', text: /Nothing flagged/ })).toBeDefined()
+  await pane.unmount()
+})
+
+test(`a loose end still open after ${10} turns clears itself`, async ($, on) => {
+  mock.clock(on)
+  quiet(on)
+  on('model.complete', () => ({ value: { isAnswered: true, text: 'NONE', usage: {} } }) as never)
+  on('tool.call', () => ({ result: '' }) as never)
+  await $.tool.call({ tool: 'Edit', file_path: '/x/a.ts', old_string: '', new_string: '// TODO wire the retry' } as never)
+
+  const pane = await $.ui.mount({ plugin: 'tether', surface: 'desktop', component: 'Pane', requestId: 'tether', props: { bodyColumns: 90 } as never })
+  for (let i = 0; i < 9; i++) await $.turn.complete(answer('ok'))
+  expect(await pane.find({ type: 'Text', text: /wire the retry/ })).toBeDefined()
+  await $.turn.complete(answer('ok'))
+  expect(await pane.find({ type: 'Text', text: /wire the retry/ })).toBeUndefined()
+  await pane.unmount()
+})

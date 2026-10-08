@@ -18,6 +18,8 @@ export type Undone = {
   text: string
   source: 'said' | 'code' | 'checker'
   at: number
+  // The main turn count when it was recorded; absent on ones stored before 0.7.0, which count as turn 0.
+  turn?: number
   status: 'open' | 'sent' | 'cleared'
 }
 
