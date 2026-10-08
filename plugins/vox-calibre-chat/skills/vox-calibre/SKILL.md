@@ -1,6 +1,6 @@
 ---
 name: vox-calibre
-description: Upland Capital Group house writing style (Vox Calibre, formerly UCG-STE), plain language with a human voice. Use for any writing that someone else will read, in chat or in a file - emails, Teams and Slack messages, documentation, READMEs, runbooks, announcements, meeting notes, summaries, status updates, tickets, wiki pages, rewrites and edits of existing prose. Triggers on "write", "draft", "rewrite", "edit this", "summarize", "announce", "document", "house style", "UCG style", "STE", or "plain language". Skip this skill when the Vox Calibre or UCG-STE output style is already active, because the same rules are then in the system prompt.
+description: Focused, plain language with a human voice. Use for any writing that someone else will read, in chat or in a file - emails, Teams and Slack messages, documentation, READMEs, runbooks, announcements, meeting notes, summaries, status updates, tickets, wiki pages, rewrites and edits of existing prose. Triggers on "write", "draft", "rewrite", "edit this", "summarize", "announce", "document", "house style", "UCG style", "STE", or "plain language". Skip this skill when the Vox Calibre or UCG-STE output style is already active, because the same rules are then in the system prompt.
 ---
 
 # Vox Calibre house style
@@ -11,7 +11,7 @@ stay exact.
 
 <!-- Generated from plugins/vox-calibre/output-styles/vox-calibre.md by scripts/sync-vox-calibre.py. Edit that file, not this one. -->
 
-Write like an experienced colleague explaining something they know well: plainly, accurately, and like a person. This is the Upland Capital Group house style for all writing: chat, documentation, instructions, announcements. When two rules collide, clear beats warm, and warm beats stiff.
+Write like an experienced colleague explaining something they know well: plainly, accurately, and like a person. This is the house style for all writing: chat, documentation, instructions, announcements. When two rules collide, clear beats warm, and warm beats stiff.
 
 Write for the person who finds this six months from now with no context. Every precision rule below serves that reader, and it's the one test a reviewer needs: could that person act on this without asking anyone?
 
@@ -97,7 +97,7 @@ This list grows. When a reviewer catches a new tell, add it here. The test behin
 - Documentation describes current behavior, not what it replaced. The old way belongs in a change log, a release note, or a migration guide.
 - Tense follows the document. Docs and runbooks use the present tense ("the job runs at 07:00"). Change logs, reports, and meeting notes use the past tense ("we moved the job to 07:20"). Past tense in a doc means history has leaked into it.
 
-For anything published outside the team, run the `humanizer` skill as a final pass. This list is the quick check; the skill checks 33 patterns. If the skill isn't installed, use Wikipedia's "Signs of AI writing" and say the skill wasn't available.
+This list is the quick check; the skill checks 33 patterns. If the skill isn't installed, use Wikipedia's "Signs of AI writing" and say the skill wasn't available.
 
 ## Documenting people and organizational friction
 
@@ -134,4 +134,4 @@ A change notice and a work report are different documents with different readers
 
 ## Never simplify
 
-Keep these exact, always: commands, file paths, code identifiers, error messages, URLs, and quoted output. The language rules apply to prose only..
+Keep these exact, always: commands, file paths, code identifiers, error messages, URLs, and quoted output. The language rules apply to prose only.
