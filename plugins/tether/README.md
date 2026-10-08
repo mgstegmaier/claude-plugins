@@ -9,7 +9,7 @@ Adapted from ClariSortAi's Terminal Desk (MIT, see `LICENSE`).
 1. In the Claude desktop app's Code tab or in a terminal session, run `/plugin marketplace add mgstegmaier/claude-plugins`. You only need this once.
 2. Run `/plugin install tether@mgstegmaier`.
 3. Run `/reload-plugins`, or start a new session.
-4. Run `/tether` to open the pane.
+4. Start a session. The pane opens by itself. In a terminal narrower than 144 columns it waits until the terminal widens; run `/tether` to open it at any width.
 
 You need Claude Code 2.1.289 or later. To check your version, run `claude --version` in a terminal.
 
@@ -25,9 +25,9 @@ No button in the pane sends anything. Each one puts a message in your prompt box
 
 **Assumptions** lists the last five judgment calls Claude reported, newest first, each with its reason and what it affects. Approve takes an assumption you agree with off the list. Reject, or the number next to it, drafts a correction. If Claude later overturns an assumption itself, the old entry is struck through, and Clear takes it off the list.
 
-**Loose ends** lists work Claude put off. It is filled three ways: sentences in Claude's answer that defer something ("for now", "I did not run", "placeholder"), lines it writes into a file that mark unfinished work (`TODO`, a skipped test, "not implemented"), and a second, small model that reads your request against Claude's final report after any turn with five or more tool calls. Do it now, or the letter next to an entry, drafts "You left this undone: ... Do it now." `x` clears the list.
+**Loose ends** lists work Claude put off, each written as one concrete action Claude could take if you told it to. Lines Claude writes into a file that mark unfinished work (`TODO`, a skipped test, "not implemented") go straight in. Everything else goes through a second, small model that reads your request against Claude's final report and rewrites each loose end so it names the exact file, command or target. That model runs after any answer with a sentence that defers something ("for now", "I haven't", "placeholder"), and after any turn with five or more tool calls. It drops list headings, work skipped on purpose with a reason, and decisions only you can make. Do now, or the letter next to an entry, drafts "You left this undone: ... Do it now." Clear drops one entry, and `x` clears the list.
 
-**Action items** lists what Claude is waiting on you for: decisions, choices, questions, things to check, and tasks only you can do. Each ask gets buttons that fit it: Approve and Deny, one per option, Answer, Looks good, Done and Cancel, plus Discuss on every ask. An ask leaves the list when you send the reply its button drafted, even if you add to it first. Discuss is the exception: it starts a conversation, so its ask stays until Claude resolves it. Dismiss, on a question, drops it without a message.
+**Action items** lists what Claude is waiting on you for: decisions, choices, questions, things to check, and tasks only you can do. Each ask gets buttons that fit it: Approve and Deny, one per option, Answer, Looks good, Done and Cancel, plus Discuss on every ask. A finished reply ends with a blank line, so you can press buttons on several asks and send the replies together as separate paragraphs. Answer and Discuss leave the cursor after their colon for you to type. An ask leaves the list when you send the reply its button drafted, even if you add to it first. Discuss is the exception: it starts a conversation, so its ask stays until Claude resolves it. Dismiss, on a question, drops it without a message.
 
 Claude adds asks itself through a tool, `track`, and resolves them when your reply answers them. If Claude ends a turn with something that looks like an ask and didn't call `track`, a backstop runs: one small Claude Haiku request reads the reply and adds what was missed. It runs after the turn ends and skips any ask that matches one open or recently answered.
 
@@ -49,14 +49,14 @@ The pane is drawn locally from numbers Claude Code already keeps. Drawing them m
 
 The assumptions and Open asks sections are the parts that cost tokens. Each adds a short instruction to the system prompt (roughly 200 tokens each) and registers one tool (`note_assumption` and `track`). For assumptions, `note_assumption` is the tool that Claude calls when it makes a judgment call you did not state. Each logged assumption is a small tool call, and when Claude logs one as a separate step, that is one extra request at the cached rate. On a large conversation that can be several cents each.
 
-The Loose ends section's scanning is local and free. Its second-model check is one small request to Claude Haiku 4.5 after each turn that made five or more tool calls, sent with your request and the last part of Claude's answer. `/tether check off` stops it.
+The Loose ends section's file scan is local and free. Its second-model check is one small request to Claude Haiku 4.5 after each answer that defers something or follows five or more tool calls, sent with your request and the last part of Claude's answer. `/tether check off` stops it, and with it every loose end that comes from Claude's answers.
 
 ## What to know about the numbers
 
 - The session cost comes from Claude Code and is an estimate at API list prices. Your plan may bill differently.
 - Tokens and turns count from when the mod loaded, which is the start of the session unless you installed it partway through.
 - On a Team or Enterprise plan, or a machine with managed settings, Claude Code stops a mod you install yourself from changing the system prompt, so the assumptions panel may stay empty.
-- Loose ends is a prompt to look, not a verdict. The phrase scan flags innocent sentences sometimes, and the second model reads Claude's report and not its tool calls, so it finds what the report admits to.
+- Loose ends is a prompt to look, not a verdict. The second model reads Claude's report and not its tool calls, so it finds what the report admits to.
 - Context figures describe the main conversation. Subagents get their own status but not their own context breakdown.
 
 ## Before you install

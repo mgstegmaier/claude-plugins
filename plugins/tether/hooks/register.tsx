@@ -64,10 +64,12 @@ const UNDONE_KEYS = ['a', 'b', 'c', 'd', 'e']
 const CHECK_MIN_TOOLS = 5
 const CHECKER = 'claude-haiku-4-5-20251001'
 const CHECK_SYSTEM = [
-  'You compare what a user asked a coding assistant to do with the assistant\'s final report.',
-  'List each thing the user clearly asked for that the report shows was not done, was put off, or was only partly done.',
-  'One per line, at most three, each under 20 words, each starting with a verb. No numbering, no commentary.',
-  'These are the loose ends. If there are none, reply with the single word NONE.',
+  'You read what a user asked a coding assistant to do and the assistant\'s final report, and list the loose ends:',
+  'concrete work the assistant could still do itself if the user told it "do it now".',
+  'Each loose end is one line under 25 words, starts with a verb, and names the exact thing (file, command, branch, plugin, version, target) so it makes sense to someone who never saw the conversation.',
+  'Write "Push branch fix/retry and open a pull request against main", never "Push it".',
+  'Leave out: work the report says was skipped on purpose with a reason; decisions or actions only the user can take; headings and list lead-ins such as "What I left alone:"; anything already done; anything you cannot make concrete from the report.',
+  'At most three, one per line, no numbering, no commentary. If there are none, reply with the single word NONE.',
 ].join(' ')
 // How an answer words work it is putting off.
 const SAID = /\b(for now|follow[- ]up|out of scope|not yet|I (?:didn't|did not|haven't|have not|skipped|left)\b|(?:do|handle|add|fix|revisit|address|tackle) (?:that|this|it|them|those) later|in a later (?:pass|step|turn|change|PR)|still needs?|remains? to be|placeholder|stubbed|untested|not (?:verified|tested|implemented|wired up))/i
@@ -96,7 +98,9 @@ const recordUndone = async ($: EngineInterface, found: string[], source: Undone[
 
   await update($, stats, raw => {
     const s = whole(raw)
-    const fresh = [...new Set(found)].filter(text => !s.undone.some(one => one.text === text))
+    // Cleared and sent ones count too, so a reworded copy doesn't come back.
+    const seen = s.undone.map(one => one.text)
+    const fresh = found.filter(text => !isDuplicate(text, seen) && (seen.push(text), true))
     added = fresh.length
 
     return {
@@ -114,13 +118,16 @@ const recordUndone = async ($: EngineInterface, found: string[], source: Undone[
   }
 }
 
-// A second, small model reads the request against the final report. It sees
-// the report and not the tool calls, so it finds what the report admits to.
-const check = async ($: EngineInterface, asked: string, answer: string): Promise<void> => {
+// A second, small model reads the request against the final report and writes
+// each loose end as a standalone action. It sees the report and not the tool
+// calls, so it finds what the report admits to. `hints` are the report's own
+// put-off sentences, which alone are too thin to act on.
+const check = async ($: EngineInterface, asked: string, answer: string, hints: string[], source: Undone['source']): Promise<void> => {
+  const flagged = hints.length ? `\n\nSENTENCES IN THE REPORT THAT PUT WORK OFF:\n${hints.join('\n')}` : ''
   const reply = await $.model.complete({
     model: CHECKER,
     system: CHECK_SYSTEM,
-    prompt: `REQUEST:\n${asked}\n\nFINAL REPORT:\n${answer.slice(-6000)}`,
+    prompt: `REQUEST:\n${asked || '(not captured)'}\n\nFINAL REPORT:\n${answer.slice(-6000)}${flagged}`,
     maxTokens: 300,
     timeoutMs: 30_000,
   })
@@ -137,7 +144,7 @@ const check = async ($: EngineInterface, asked: string, answer: string): Promise
     .filter(row => row !== '' && !/^none\.?$/i.test(row))
     .slice(0, 3)
 
-  await recordUndone($, found, 'checker')
+  await recordUndone($, found, source)
 }
 
 const BLANK_ROW: AgentRow = {
@@ -357,6 +364,10 @@ export const register: Register = on => {
       description: 'Open the session dashboard pane',
     })
 
+    // Opens itself on every session start. Unasked, a terminal places it from 144 columns;
+    // narrower, it waits until the terminal widens or /tether opens it.
+    $.ui.open({ id: PANE, title: 'Tether' }).catch((err: unknown) => $.ui.log(`tether open: ${String(err)}`, { to: 'debug' }))
+
     const tick = async (): Promise<void> => {
       const s = whole(await read($, stats))
       const at = await $.clock.now()
@@ -541,7 +552,7 @@ export const register: Register = on => {
 
       if (row !== undefined) {
         const file = `${input.file_path ?? input.notebook_path ?? 'a file'}`.split(/[\\/]/).pop() ?? 'a file'
-        await recordUndone($, [`Wrote "${row.trim().slice(0, 90)}" into ${file}`], 'code')
+        await recordUndone($, [`Finish "${row.trim().slice(0, 90)}" in ${file}`], 'code')
       }
     }
 
@@ -590,7 +601,7 @@ export const register: Register = on => {
       await update($, stats, raw => ({ ...whole(raw), turnTools: 0 }))
 
       if (e.reason === 'answer') {
-        await recordUndone($, deferrals(e.answer), 'said')
+        const hints = deferrals(e.answer)
 
         if (!isTracked && looksLikeAsk(e.answer)) {
           // Not awaited: off the turn's path.
@@ -599,9 +610,11 @@ export const register: Register = on => {
           )
         }
 
-        if (turn.isChecking && turn.turnTools >= CHECK_MIN_TOOLS && turn.lastPrompt !== '') {
+        // A put-off sentence alone ("I haven't deployed it.") is too thin to act on,
+        // so it goes through the checker to come back as a concrete action, or not at all.
+        if (turn.isChecking && (hints.length > 0 || (turn.turnTools >= CHECK_MIN_TOOLS && turn.lastPrompt !== ''))) {
           // Not awaited: the turn ends now and the finding arrives when it does.
-          check($, turn.lastPrompt, e.answer).catch((err: unknown) =>
+          check($, turn.lastPrompt, e.answer, hints, hints.length > 0 ? 'said' : 'checker').catch((err: unknown) =>
             $.ui.log(`tether checker: ${String(err)}`, { to: 'debug' }),
           )
         }
@@ -694,26 +707,24 @@ export const register: Register = on => {
     // "Reject" puts the correction in the prompt box for the person to finish
     // and send; nothing reaches the model until they do.
     const flag = async (id: number, text: string): Promise<void> => {
-      await draft(`Assumption A${id} is wrong ("${text}"). Instead: `)
+      await draft(`Assumption A${id} is wrong ("${text}"). Instead: \n\n`)
       await update($, stats, raw => ({
         ...whole(raw),
         assumptions: whole(raw).assumptions.map(one => (one.id === id ? { ...one, status: 'flagged' as const } : one)),
       }))
     }
-    // "Do it now" drafts the instruction; the person sends it.
+    // "Do now" drafts the instruction; the person sends it.
     const push = async (id: number, text: string): Promise<void> => {
-      await draft(`You left this undone: "${text}". Do it now.`)
+      await draft(`You left this undone: "${text}". Do it now.\n\n`)
       await update($, stats, raw => ({
         ...whole(raw),
         undone: whole(raw).undone.map(one => (one.id === id ? { ...one, status: 'sent' as const } : one)),
       }))
     }
-    const clear = async (): Promise<void> => {
-      await update($, stats, raw => ({
-        ...whole(raw),
-        undone: whole(raw).undone.map(one => (one.status === 'open' ? { ...one, status: 'cleared' as const } : one)),
-      }))
-    }
+    const clear = (id?: number) => update($, stats, raw => ({
+      ...whole(raw),
+      undone: whole(raw).undone.map(one => (one.status === 'open' && (id === undefined || one.id === id) ? { ...one, status: 'cleared' as const } : one)),
+    }))
     const todo = s.undone.filter(one => one.status === 'open').slice(-SHOWN_UNDONE).reverse()
     const sources = { said: 'Claude said', code: 'in a file', checker: 'second model' }
     const notes = (list: Assumption[]) => list.filter(one => one.status !== 'cleared').slice(-SHOWN_NOTES).reverse().map((note, i) => {
@@ -788,8 +799,10 @@ export const register: Register = on => {
     }
 
     // Open asks: each button drafts its reply into the prompt box, and the ask clears when
-    // that reply is sent. Discuss starts a conversation instead, so its ask stays until
-    // Claude resolves it with `track`. Dismiss drops it unsent.
+    // that reply is sent. A finished reply ends in a blank line, so several pressed in a row
+    // stack as paragraphs. Discuss and Answer leave the cursor after their colon for typing,
+    // and start a conversation, so Discuss's ask stays until Claude resolves it with `track`.
+    // Dismiss drops it unsent.
     const dismissAsk = async (a: Ask): Promise<void> => {
       await update($, asks, l => l.filter(x => x.id !== a.id))
       await rememberAsks($, [a.text])
@@ -800,7 +813,7 @@ export const register: Register = on => {
           key={`${name}${a.id}`}
           label={label}
           onPress={async () => {
-            await draft(text)
+            await draft(text.endsWith(': ') ? text : `${text}\n\n`)
             await update($, asks, l => l.map(x => (x.id === a.id ? { ...x, drafted: text.trim() } : x)))
           }}
         />
@@ -891,13 +904,16 @@ export const register: Register = on => {
           ...todo.map((one, i) => (
             <Box key={`undone-${one.id}`} flexDirection="column" marginTop={i === 0 ? 0 : 1}>
               <Box flexDirection="row" justifyContent="space-between">
-                <Text color={ACCENT} bold>{`U${one.id} · ${elapsed(one.at - s.openedAt)} · ${sources[one.source]}`.slice(0, Math.max(8, inner - 14))}</Text>
-                <Button key={`do-${one.id}`} label={`${UNDONE_KEYS[i] ?? ''} Do it now`} hotkey={UNDONE_KEYS[i] ?? 'a'} onPress={() => push(one.id, one.text)} />
+                <Text color={ACCENT} bold>{`U${one.id} · ${elapsed(one.at - s.openedAt)} · ${sources[one.source]}`.slice(0, Math.max(8, inner - 22))}</Text>
+                <Box flexDirection="row" columnGap={1}>
+                  <Button key={`do-${one.id}`} label={`${UNDONE_KEYS[i] ?? ''} Do now`} hotkey={UNDONE_KEYS[i] ?? 'a'} onPress={() => push(one.id, one.text)} />
+                  <Button key={`clear-${one.id}`} label="Clear" onPress={() => clear(one.id)} />
+                </Box>
               </Box>
               <Text wrap="wrap">{one.text}</Text>
             </Box>
           )),
-          ...(todo.length > 0 ? [<Button key="undone-clear" label="x Clear all" hotkey="x" onPress={clear} />] : []),
+          ...(todo.length > 0 ? [<Button key="undone-clear" label="x Clear all" hotkey="x" onPress={() => clear()} />] : []),
         ])}
         {section('asks', 'action items', waiting.length === 0 ? '' : `${waiting.length} waiting`, waiting.length === 0
           ? [<Text dimColor>Nothing waiting on you.</Text>]

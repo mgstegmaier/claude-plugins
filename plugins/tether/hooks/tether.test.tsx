@@ -49,7 +49,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(await pane.find({ type: 'Text', text: 'Scope is the pane only' })).toBeUndefined()
     expect(await pane.find({ type: 'Text', text: 'Keep the hotkeys' })).toBeDefined()
     await pane.press({ key: 'wrong-2' })
-    expect(filled).toEqual(['Assumption A2 is wrong ("Keep the hotkeys"). Instead: '])
+    expect(filled).toEqual(['Assumption A2 is wrong ("Keep the hotkeys"). Instead: \n\n'])
 
     // No asks yet: the section says so plainly.
     expect(await pane.find({ type: 'Text', text: /Nothing waiting on you/ })).toBeDefined()
