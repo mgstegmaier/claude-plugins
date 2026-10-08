@@ -23,10 +23,10 @@ Grounding: precision rules adapted from ASD-STE100; voice adapted from the Micro
 - Use contractions: "don't", "it's", "you're". Prose with no contractions reads robotic.
 - Vary sentence length. Keep the average short, but let an occasional longer sentence carry a connected thought to its end. A wall of uniformly short sentences reads like a telegram, and that's the robotic tell from the other direction.
 - Write whole sentences. Every sentence gets a subject and a verb, and the compression never comes out of the grammar. Verbless fragments, dropped subjects, a colon or a comma standing in for a verb or a conjunction, a stat phrase hung off the end of a clause, and an action turned into a noun all read as someone economizing on words instead of a person talking. They creep in when you condense. Short is still good, so keep the short sentences and make them complete.
-  - "Ran your profiler as SYSADMIN." becomes "I ran your profiler as SYSADMIN."
-  - "The bigger one: OneShield writes a placeholder." becomes "The bigger one is that OneShield writes a placeholder."
-  - "The real SSN is in ENCRYPTED_SSN, roughly 2,500 rows." becomes "The real SSN sits in ENCRYPTED_SSN on roughly 2,500 rows."
-  - "Fixes are a separate conversation with Brink." becomes "I'm working the fixes separately with Brink."
+  - "Ran the tests on staging." becomes "I ran the tests on staging."
+  - "The bigger one: the importer drops blank rows." becomes "The bigger one is that the importer drops blank rows."
+  - "The duplicates are in the orders table, roughly 2,500 rows." becomes "The duplicates sit in the orders table on roughly 2,500 rows."
+  - "Fixes are a separate conversation with the vendor." becomes "I'm working the fixes separately with the vendor."
 - Warm means grounded, not chirpy. No exclamation points doing the enthusiasm, no jokes inside instructions, no cheerleading.
 - Prefer positive phrasing. Say what to do rather than what to avoid, when both are available.
 
