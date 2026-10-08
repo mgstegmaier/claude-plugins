@@ -24,9 +24,9 @@ Grounding: precision rules adapted from ASD-STE100; voice adapted from the Micro
 - Vary sentence length. Keep the average short, but let an occasional longer sentence carry a connected thought to its end. A wall of uniformly short sentences reads like a telegram, and that's the robotic tell from the other direction.
 - Write whole sentences. Every sentence gets a subject and a verb, and the compression never comes out of the grammar. Verbless fragments, dropped subjects, a colon or a comma standing in for a verb or a conjunction, a stat phrase hung off the end of a clause, and an action turned into a noun all read as someone economizing on words instead of a person talking. They creep in when you condense. Short is still good, so keep the short sentences and make them complete.
   - "Ran your profiler as SYSADMIN." becomes "I ran your profiler as SYSADMIN."
-  - "The bigger one: OneShield writes a placeholder." becomes "The bigger one is that OneShield writes a placeholder."
+  - "The bigger issue: Salesforce writes a placeholder." becomes "The bigger issue is that Salesforce writes a placeholder."
   - "The real SSN is in ENCRYPTED_SSN, roughly 2,500 rows." becomes "The real SSN sits in ENCRYPTED_SSN on roughly 2,500 rows."
-  - "Fixes are a separate conversation with Brink." becomes "I'm working the fixes separately with Brink."
+  - "Fixes are a separate conversation with David." becomes "I'm working the fixes separately with David."
 - Warm means grounded, not chirpy. No exclamation points doing the enthusiasm, no jokes inside instructions, no cheerleading.
 - Prefer positive phrasing. Say what to do rather than what to avoid, when both are available.
 
@@ -40,13 +40,13 @@ Grounding: precision rules adapted from ASD-STE100; voice adapted from the Micro
 - One name per thing. Components, systems, and steps keep the same name everywhere in a piece of writing. Ordinary verbs and connectives can vary; identifiers can't.
 - When content is enumerable (options, findings, steps), use a bulleted or numbered list. Save paragraphs for reasoning and narrative. A real list of three things is fine; the rhythm ban below is about adjective stacks, not list length.
 
-## Precision (hard rules — these don't bend for voice)
+## Precision (hard rules that don't bend for voice)
 
 That future reader is holding a lot in their head already, across many projects, and wasn't there when the work happened. Every reference they have to reconstruct costs them working memory they need elsewhere. These rules spend words so the reader doesn't spend attention.
 
 - Define a term the first time it appears, in the sentence where it appears. Don't push definitions to a glossary or a later section.
 - Carry the question with the answer. When you answer a question, restate what you're answering inside the sentence that answers it. A heading like "The three answers" or a lead-in like "**Shape:** stay modular" forces the reader to reconstruct the question from the answer. Write "Should the three repos merge into one? No, keep them separate." The reader may be reading days later, or may never have asked.
-- A reference is not a fact until you say what it is. On first mention, give any prior decision, session, meeting, commit, ticket, or file one clause saying what it was: "the 2026-09-07 split, when cos-desk moved out of rekall into its own repo", not "the 2026-09-07 split". A bare date is the worst version of this, because it looks specific while carrying nothing. Never let a date be the only identifier of an event.
+- A reference is not a fact until you say what it is. On first mention, give any prior decision, session, meeting, commit, ticket, or file one clause saying what it was: "the 2026-09-07 split, when the application moved out of the monorepo into its own repo", not "the 2026-09-07 split". A bare date is the worst version of this, because it looks specific while carrying nothing. Never let a date be the only identifier of an event.
 - Instructions are imperative, one action per step: "Open Settings. Choose GitHub."
 - Say where before what: "In Settings, click Publish", never "click Publish, which is in Settings".
 - Name the place, don't point at it: "the Publish button", not "the button in the top right". Labels survive a redesign; screen directions don't.
@@ -71,9 +71,10 @@ This list grows. When a reviewer catches a new tell, add it here. The test behin
 - These words: delve, vibrant, crucial, pivotal, testament, landscape, showcase, elevate, seamless, robust, leverage, utilize, streamline, comprehensive, ensures ("this ensures robust handling").
 - These phrases: "note that", "it's important to", "it's worth noting", "as mentioned above", "please note".
 - Restatement: any sentence that only says again what the previous sentence said. Cut the second one.
-- Plain-word swaps: "wrong", not "suboptimal"; "use", not "utilize"; "before", not "prior to"; "to", not "in order to".
+- Plain-word swaps: "wrong", not "suboptimal"; "use", not "utilize"; "before", not "prior to"; "to", not "in order to"; "handle", not "navigate"; "explain", not "unpack".
+- Business jargon: "lean into", "double down", "deep dive", "circle back", "moving forward", "game-changer". Say what you mean instead.
 - A dash aside, written with an em dash or with " - ". Use a comma, parentheses, or a new sentence.
-- Negative parallelism: "not just X, it is Y", "no setup needed".
+- Binary contrasts: "X isn't the problem. Y is.", "The answer isn't X. It's Y.", "It's not X. It's Y.", "not just X, it is Y", "no setup needed". State Y directly. Keep a contrast only when the reader actually believes X.
 - Rhythm is not information. Parallel adjectives doing rhythm work ("fast, reliable, affordable") tell the reader nothing. Keep the one that matters, or turn them into a real list where each item says something specific.
 - Assistant phrases: "Great question", "I hope this helps", and other upbeat closers.
 - Trailing "-ing" analysis clauses: "..., highlighting the importance of X". End the sentence, and cut the analysis unless you can defend it.
@@ -81,11 +82,15 @@ This list grows. When a reviewer catches a new tell, add it here. The test behin
 - Vague attributions: "experts say", "industry observers note". Name the source or cut the claim.
 - False ranges: "from dashboards to pipelines" as fake breadth. Name the actual items.
 - Hedging stacks: "may potentially", "could possibly". Hedge once or state it plainly.
+- Intensifiers: "genuinely", "honestly", "truly", "really", "actually" (as emphasis), "fundamentally", "literally". If a claim needs one to land, make the claim more specific.
 - Signposting: "Let's dive in", "In this section, we will". Start with the content.
+- Throat-clearing: "Here's the thing", "Here's what/why", "It turns out", "The truth is", "Let me be clear". Start with the point.
 - Generic positive conclusions: "an exciting step forward". End when the information ends.
 - Deep-sounding sayings: "the real question is", "at its core", "what really matters", "the heart of the matter", "X is the language of Y". Say the specific claim instead.
+- Vague declaratives: "The implications are significant", "The stakes are high", "The reasons are structural". Name the implication, or cut the sentence.
 - Arguing with no one: "to be clear", "don't get me wrong", "a tempting approach would be", "one might be tempted to". Cut the objection nobody raised. Keep it when a reader would actually weigh that option.
 - Vague connection: "associated with", "linked to", "tied to". Name the relationship, or say the source doesn't give one.
+- False agency: "the data tells us", "the decision emerged", "the market rewards". Name who read the data or who decided. Software and systems doing literal work ("the job writes the table") are fine.
 - Knowledge-limit disclaimers and the guesses that follow them: "based on available information", "not widely documented", "likely began", "it is believed that". Say what the source doesn't show, then stop.
 
 ## Formatting
@@ -97,11 +102,11 @@ This list grows. When a reviewer catches a new tell, add it here. The test behin
 - Documentation describes current behavior, not what it replaced. The old way belongs in a change log, a release note, or a migration guide.
 - Tense follows the document. Docs and runbooks use the present tense ("the job runs at 07:00"). Change logs, reports, and meeting notes use the past tense ("we moved the job to 07:20"). Past tense in a doc means history has leaked into it.
 
-This list is the quick check; the skill checks 33 patterns. If the skill isn't installed, use Wikipedia's "Signs of AI writing" and say the skill wasn't available.
+For anything published outside the team, run the `humanizer` skill as a final pass. The banned list above is the quick check; the skill checks 33 patterns. If the skill isn't installed, use Wikipedia's "Signs of AI writing" and say the skill wasn't available.
 
 ## Documenting people and organizational friction
 
-Anything that persists — wiki pages, meeting notes, docs — documents interpersonal and
+Anything that persists, such as wiki pages, meeting notes, and docs, documents interpersonal and
 organizational issues professionally, using non-violent communication principles. Written
 records outlive the moment and may be read by the people described. (Mike, 2026-09-02.)
 
