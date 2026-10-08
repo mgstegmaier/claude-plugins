@@ -23,6 +23,14 @@ export type Undone = {
   status: 'open' | 'sent' | 'cleared'
 }
 
+// A call that reached outside the machine or is hard to undo: a push, a merge, a delete, an install, an MCP write.
+export type Effect = { at: number; text: string; isFailed: boolean; agent: string | null }
+// A file Claude edited this session, and how many times.
+export type Touched = { path: string; edits: number; at: number }
+
+// The main pane's section order and the sections the person hid.
+export type Layout = { order: string[]; hidden: string[] }
+
 // The context bar's model, the same as context-band's.
 export type Slice = { label: string; tokens: number; percent: number; color: string; note?: string; detail?: string }
 
@@ -76,10 +84,14 @@ export type Stats = {
   turnTools: number
   isChecking: boolean
   tickError: string
+  effects: Effect[]
+  touched: Touched[]
+  lastEditAt: number
+  lastCheck: { at: number; isPassed: boolean; text: string } | null
 }
 
 declare module 'claude-code' {
   interface PluginState {
-    tether: { stats: Stats; collapsed: string[]; focus: string; isEditingFocus: boolean; isFocusCustom: boolean; asks: Ask[]; nextAsk: number; closedAsks: string[] }
+    tether: { stats: Stats; collapsed: string[]; focus: string; isEditingFocus: boolean; isFocusCustom: boolean; asks: Ask[]; nextAsk: number; closedAsks: string[]; layout: Layout }
   }
 }

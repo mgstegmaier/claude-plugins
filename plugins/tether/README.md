@@ -15,7 +15,7 @@ You need Claude Code 2.1.289 or later. To check your version, run `claude --vers
 
 ## The pane
 
-`/tether` opens a pane with seven sections. Each section is a card with its name at the top: click the name to fold or unfold it. Context starts folded, which hides its legend and keeps its bar in view.
+`/tether` opens a pane with eight sections. Each section is a card with its name at the top: click the name to fold or unfold it. Context starts folded, which hides its legend and keeps its bar in view, and so does Changes.
 
 No button in the pane sends anything. Each one puts a message in your prompt box, and you press Enter to send it as it stands or edit it first.
 
@@ -35,11 +35,16 @@ Claude adds asks itself through a tool, `track`, and resolves them when your rep
 
 **Cost and tokens** shows session cost, tokens read and written, and the share served from cache.
 
+**Changes** is the session's footprint, kept only until the session closes. Its first list is everything that reached outside your machine or is hard to undo: pushes, PR merges, branch deletes, `rm`, plugin installs, deploys and MCP calls that write, each marked passed or failed. Its second list is the files Claude edited, with edit counts. The last line says whether tests, lint or a build ran after the last edit, and whether they passed. Folded, the header sums it up, for example "3 outside · 5 files · unchecked".
+
+**Settings**, at the bottom of the pane or through `/tether settings`, lists every section with Show or Hide and buttons to move it up or down. Reset restores the default order with every section shown. Your choices are saved for every new session.
+
 ## Commands
 
 | Command | What it does |
 | :- | :- |
 | `/tether` | Open the pane |
+| `/tether settings` | Choose which sections show and their order |
 | `/tether check off` | Stop sending finished turns to the second model |
 | `/tether check on` | Turn that check back on (the default) |
 
