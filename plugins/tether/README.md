@@ -2,7 +2,7 @@
 
 A session dashboard for Claude Code: a `/tether` pane of folding sections for what Claude is waiting on you for, what it's assuming, what it put off, and where your context and money went.
 
-Adapted from ClariSortAi's Terminal Desk (MIT, see `LICENSE`).
+Adapted from ClariSortAi's Terminal Desk (MIT).
 
 ## Getting started
 
@@ -12,8 +12,6 @@ Adapted from ClariSortAi's Terminal Desk (MIT, see `LICENSE`).
 4. Run `/tether` to open the pane.
 
 You need Claude Code 2.1.289 or later. To check your version, run `claude --version` in a terminal.
-
-If you unzipped ClariSortAi's original Terminal Desk into `~/.claude/skills/terminal-desk`, delete that folder first. Running both gives Claude two sets of the same tools and instructions.
 
 ## The pane
 
