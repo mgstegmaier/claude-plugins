@@ -918,7 +918,10 @@ export const register: Register = on => {
 
     return (
       <Box flexDirection="column">
-        {section('focus', 'working on', '', [
+        {/* Folded, the note rides on the header line, cut with an ellipsis; open, it gets its own row and Edit. */}
+        {section('focus', 'working on', folded.includes('focus') && note !== ''
+          ? <Box key="focus-summary" flexGrow={1} flexShrink={1} marginLeft={1} minWidth={0}><Text wrap="truncate-end">{note}</Text></Box>
+          : '', [
           ...(isEditing && Input
             ? [
                 <Box key="focus-field" width="100%">

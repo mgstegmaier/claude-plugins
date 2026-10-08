@@ -29,3 +29,22 @@ test('working on follows the session title until the person saves a note, and cl
   expect(await pane.find({ type: 'Text', text: 'Back to the title' })).toBeDefined()
   await pane.unmount()
 })
+
+for (const surface of ['terminal', 'desktop'] as const) {
+  test(`${surface}: folded, working on shows the note on its header line with no Edit; open, Edit is back`, async ($, on) => {
+    mock.clock(on)
+    on('classic.UserPromptSubmit', () => ({}) as never)
+    await $.classic.UserPromptSubmit({ prompt: 'x', session_title: 'Tether fixes' } as never)
+    const pane = await $.ui.mount({ plugin: 'tether', surface, component: 'Pane', requestId: 'tether', props: { bodyColumns: 90 } as never })
+
+    await pane.press({ key: 'fold-focus' })
+    expect(await pane.find({ key: 'focus-summary' })).toBeDefined()
+    expect(await pane.find({ type: 'Text', text: 'Tether fixes' })).toBeDefined()
+    expect(await pane.find({ key: 'focus-edit' })).toBeUndefined()
+
+    await pane.press({ key: 'fold-focus' })
+    expect(await pane.find({ key: 'focus-summary' })).toBeUndefined()
+    if (surface === 'desktop') expect(await pane.find({ key: 'focus-edit' })).toBeDefined()
+    await pane.unmount()
+  })
+}
