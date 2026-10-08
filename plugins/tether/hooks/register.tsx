@@ -168,6 +168,8 @@ const collapsed = atom({ plugin: 'tether', key: 'collapsed' } as const, ['contex
 // What this session is about, in the person's words, and whether its field is open.
 const focus = atom({ plugin: 'tether', key: 'focus' } as const, '')
 const isEditingFocus = atom({ plugin: 'tether', key: 'isEditingFocus' } as const, false)
+// The note follows the session title until the person saves their own; clearing it hands it back.
+const isFocusCustom = atom({ plugin: 'tether', key: 'isFocusCustom' } as const, false)
 // Open asks: the list, the next id, and the texts of the last 20 answered or resolved asks,
 // so the backstop never re-adds one.
 const asks = atom({ plugin: 'tether', key: 'asks' } as const, [])
@@ -300,6 +302,15 @@ const recordAssumption = async ($: EngineInterface, input: Record<string, unknow
   $.ui.toast(`Assumed: ${text.slice(0, 90)}`)
 
   return `Noted as A${id}. The user can see it.`
+}
+
+// Only the settings-hook events carry the session title. It is generated after the first
+// prompt, so it arrives with the second one; a sidebar rename arrives with the next.
+const followTitle = async ($: EngineInterface, title: string | undefined): Promise<void> => {
+  const t = title?.trim().slice(0, 500) ?? ''
+  if (t !== '' && !(await read($, isFocusCustom)) && (await read($, focus)) !== t) {
+    await update($, focus, () => t)
+  }
 }
 
 const rememberAsks = ($: EngineInterface, texts: string[]) =>
@@ -465,6 +476,15 @@ export const register: Register = on => {
       await settleDrafted($, e.text)
     }
 
+    return next(e)
+  })
+
+  on('classic.SessionStart', async ($, e, next) => {
+    await followTitle($, e.session_title)
+    return next(e)
+  })
+  on('classic.UserPromptSubmit', async ($, e, next) => {
+    await followTitle($, e.session_title)
     return next(e)
   })
 
@@ -807,6 +827,12 @@ export const register: Register = on => {
       await update($, asks, l => l.filter(x => x.id !== a.id))
       await rememberAsks($, [a.text])
     }
+    // Clear all drops every ask unsent, for a list gone stale; remembered so the backstop doesn't re-add them.
+    const clearAsks = async (): Promise<void> => {
+      const all = await read($, asks)
+      await update($, asks, () => [])
+      await rememberAsks($, all.map(a => a.text))
+    }
     const askButtons = (a: Ask) => {
       const b = (name: string, label: string, text: string) => (
         <Button
@@ -858,6 +884,7 @@ export const register: Register = on => {
     const isEditing = (await read($, isEditingFocus)) || note === ''
     const saveFocus = async (value: string): Promise<void> => {
       await update($, focus, () => value.trim().slice(0, 500))
+      await update($, isFocusCustom, () => value.trim() !== '')
       await update($, isEditingFocus, () => false)
     }
 
@@ -917,13 +944,16 @@ export const register: Register = on => {
         ])}
         {section('asks', 'action items', waiting.length === 0 ? '' : `${waiting.length} waiting`, waiting.length === 0
           ? [<Text dimColor>Nothing waiting on you.</Text>]
-          : waiting.map((a, i) => (
-              <Box key={`ask-${a.id}`} flexDirection="column" marginTop={i === 0 ? 0 : 1}>
-                <Text wrap="wrap">{a.text}</Text>
-                {a.drafted !== undefined && <Text dimColor>In your prompt box. Clears when you send it.</Text>}
-                <Box columnGap={1} rowGap={1} flexWrap="wrap">{askButtons(a)}</Box>
-              </Box>
-            )))}
+          : [
+              ...waiting.map((a, i) => (
+                <Box key={`ask-${a.id}`} flexDirection="column" marginTop={i === 0 ? 0 : 1}>
+                  <Text wrap="wrap">{a.text}</Text>
+                  {a.drafted !== undefined && <Text dimColor>In your prompt box. Clears when you send it.</Text>}
+                  <Box columnGap={1} rowGap={1} flexWrap="wrap">{askButtons(a)}</Box>
+                </Box>
+              )),
+              <Box key="asks-clear-row" marginTop={1}><Button key="asks-clear" label="Clear all" onPress={clearAsks} /></Box>,
+            ])}
         {section('agents', 'subagents', `${s.agents.filter(row => isRunning(row, s.now)).length} running`, [
           ...(s.agents.length === 0 ? [<Text dimColor>None started yet</Text>] : []),
           ...agentRows(6),
