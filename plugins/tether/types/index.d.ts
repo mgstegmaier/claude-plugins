@@ -78,6 +78,6 @@ export type Stats = {
 
 declare module 'claude-code' {
   interface PluginState {
-    tether: { stats: Stats; collapsed: string[]; focus: string; isEditingFocus: boolean; asks: Ask[]; nextAsk: number; closedAsks: string[] }
+    tether: { stats: Stats; collapsed: string[]; focus: string; isEditingFocus: boolean; isFocusCustom: boolean; asks: Ask[]; nextAsk: number; closedAsks: string[] }
   }
 }

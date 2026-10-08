@@ -24,3 +24,16 @@ test('two action items pressed in a row stack as paragraphs with the cursor on a
   expect(box.endsWith('Answer to "Which branch?": ')).toBe(true)
   await pane.unmount()
 })
+
+test('Clear all drops every action item unsent', async ($, on) => {
+  mock.clock(on)
+  on('ui.toast', () => ({ value: {} }) as never)
+  await $.tool.call({ tool: 'mcp__tether__track', add: [{ kind: 'decision', text: 'Old ask one?' }, { kind: 'todo', text: 'Old ask two' }] } as never)
+
+  const pane = await $.ui.mount({ plugin: 'tether', surface: 'desktop', component: 'Pane', requestId: 'tether', props: { bodyColumns: 90 } as never })
+  await pane.press({ key: 'asks-clear' })
+  expect(await pane.find({ type: 'Text', text: 'Old ask one?' })).toBeUndefined()
+  expect(await pane.find({ type: 'Text', text: /Nothing waiting on you/ })).toBeDefined()
+  expect(await pane.find({ key: 'asks-clear' })).toBeUndefined()
+  await pane.unmount()
+})

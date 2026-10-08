@@ -30,7 +30,7 @@
       "displayName": "Tether",
       "description": "A mod for the Claude desktop app and the terminal: a /tether pane with folding sections for a working-on note, the context bar, the assumptions Claude is making (Approve or Reject each), work it put off, action items (everything Claude is waiting on you for), subagents and cost. Buttons draft into the prompt box; nothing sends until you press Enter. Needs Claude Code 2.1.289 or later. Adapted from ClariSortAi's Terminal Desk (MIT).",
       "source": "./plugins/tether",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "category": "productivity",
       "keywords": [
         "mod",
