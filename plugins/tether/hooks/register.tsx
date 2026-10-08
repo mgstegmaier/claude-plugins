@@ -1,9 +1,10 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { AgentRow, Ask, Assumption, Stats, Undone } from '../types'
+import type { AgentRow, Ask, Assumption, Layout, Stats, Undone } from '../types'
 import { BACKSTOP_SYSTEM, GUIDANCE, SCHEMA, SEND, TRACK, isDuplicate, looksLikeAsk, parseChange } from './asks'
 import type { Change } from './asks'
+import { WRITERS, checkState, footprint } from './changes'
 import { barCells, barSvg, fmt, pillColor, toSnapshot } from './split'
 
 const PANE = 'tether'
@@ -56,6 +57,10 @@ const EMPTY: Stats = {
   turnTools: 0,
   isChecking: true,
   tickError: '',
+  effects: [],
+  touched: [],
+  lastEditAt: 0,
+  lastCheck: null,
 }
 
 const SHOWN_UNDONE = 5
@@ -78,7 +83,6 @@ const STALE_TURNS = 10
 const SAID = /\b(for now|follow[- ]up|out of scope|not yet|I (?:didn't|did not|haven't|have not|skipped|left)\b|(?:do|handle|add|fix|revisit|address|tackle) (?:that|this|it|them|those) later|in a later (?:pass|step|turn|change|PR)|still needs?|remains? to be|placeholder|stubbed|untested|not (?:verified|tested|implemented|wired up))/i
 // What put-off work looks like once it is written into a file.
 const WROTE = /\b(?:TODO|FIXME|XXX)\b|not implemented|NotImplemented|\bplaceholder\b|\.skip\(|\bx(?:it|describe)\(|@pytest\.mark\.skip/
-const WRITERS = ['Edit', 'Write', 'MultiEdit', 'NotebookEdit']
 
 // The sentences of an answer that put work off, code blocks left out.
 const deferrals = (answer: string): string[] =>
@@ -188,13 +192,34 @@ const BLANK_ROW: AgentRow = {
 }
 
 const stats = atom({ plugin: 'tether', key: 'stats' } as const, EMPTY)
-// Sections the person folded. Context starts folded: its bar still shows.
-const collapsed = atom({ plugin: 'tether', key: 'collapsed' } as const, ['context'])
+// Sections the person folded. Context starts folded (its bar still shows), and so does changes.
+const collapsed = atom({ plugin: 'tether', key: 'collapsed' } as const, ['context', 'changes'])
 // What this session is about, in the person's words, and whether its field is open.
 const focus = atom({ plugin: 'tether', key: 'focus' } as const, '')
 const isEditingFocus = atom({ plugin: 'tether', key: 'isEditingFocus' } as const, false)
 // The note follows the session title until the person saves their own; clearing it hands it back.
 const isFocusCustom = atom({ plugin: 'tether', key: 'isFocusCustom' } as const, false)
+
+// The main pane's sections in their default order, with the names Settings shows.
+const SECTIONS: [id: string, label: string][] = [
+  ['focus', 'working on'], ['context', 'context'], ['assumptions', 'assumptions'], ['undone', 'loose ends'],
+  ['asks', 'action items'], ['agents', 'subagents'], ['cost', 'cost and tokens'], ['changes', 'changes'],
+]
+const SETTINGS = 'tether-settings'
+const DEFAULT_LAYOUT: Layout = { order: SECTIONS.map(([id]) => id), hidden: [] }
+// The person's order and hidden sections: saved in $.store for every session, mirrored here so the pane redraws.
+const layout = atom({ plugin: 'tether', key: 'layout' } as const, DEFAULT_LAYOUT)
+
+/** Every section in the person's order; ids it doesn't know are dropped, new ones join at the end. */
+const ordered = (l: Layout): string[] => {
+  const known = SECTIONS.map(([id]) => id)
+  const kept = l.order.filter(id => known.includes(id))
+  return [...kept, ...known.filter(id => !kept.includes(id))]
+}
+/** The sections to draw, in order. */
+const arrange = (l: Layout): string[] => ordered(l).filter(id => !l.hidden.includes(id))
+const isLayout = (v: unknown): v is Layout =>
+  typeof v === 'object' && v !== null && Array.isArray((v as Layout).order) && Array.isArray((v as Layout).hidden)
 // Open asks: the list, the next id, and the texts of the last 20 answered or resolved asks,
 // so the backstop never re-adds one.
 const asks = atom({ plugin: 'tether', key: 'asks' } as const, [])
@@ -329,6 +354,13 @@ const recordAssumption = async ($: EngineInterface, input: Record<string, unknow
   return `Noted as A${id}. The user can see it.`
 }
 
+const openSettings = ($: EngineInterface) => $.ui.open({ id: SETTINGS, title: 'Tether settings', focus: true, closeOnEscape: true })
+
+const saveLayout = async ($: EngineInterface, next: Layout): Promise<void> => {
+  await update($, layout, () => next)
+  await $.store.set('layout', next)
+}
+
 // Only the settings-hook events carry the session title. It is generated after the first
 // prompt, so it arrives with the second one; a sidebar rename arrives with the next.
 const followTitle = async ($: EngineInterface, title: string | undefined): Promise<void> => {
@@ -452,6 +484,11 @@ export const register: Register = on => {
       inputSchema: SCHEMA,
     })
 
+    const saved = await $.store.get('layout').catch(() => undefined)
+    if (isLayout(saved)) {
+      await update($, layout, () => saved)
+    }
+
     return next(e)
   })
 
@@ -462,6 +499,12 @@ export const register: Register = on => {
       await update($, stats, s => ({ ...whole(s), isChecking: word === 'check on' }))
 
       return { text: `Second-model check of finished turns is ${word.slice(6)}.` }
+    }
+
+    if (word === 'settings') {
+      await openSettings($)
+
+      return { text: 'Tether settings opened.' }
     }
 
     await $.ui.open({ id: PANE, title: 'Tether' })
@@ -586,6 +629,7 @@ export const register: Register = on => {
         agents: agentId === undefined
           ? s.agents
           : withAgent(s.agents, agentId, at, row => ({ ...row, endedAt: null, tools: row.tools + 1 })),
+        ...footprint(s, called, e as unknown as Record<string, unknown>, at, hasFailed, agentId ?? null),
       }
     })
 
@@ -706,6 +750,46 @@ export const register: Register = on => {
     return done
   })
 
+
+  // Settings: show or hide each section and move it up or down. Saved for every new session.
+  on('ui.render', { component: 'Pane', requestId: SETTINGS }, async ($, e) => {
+    const { Box, Button, Text } = $.ui.resolve(e)
+    const l = await read($, layout)
+    const ids = ordered(l)
+    const move = (id: string, by: number) => {
+      const next = [...ids]
+      const at = next.indexOf(id)
+      const to = at + by
+      if (to < 0 || to >= next.length) return
+      ;[next[at], next[to]] = [next[to] as string, next[at] as string]
+      return saveLayout($, { ...l, order: next })
+    }
+    const toggle = (id: string) =>
+      saveLayout($, { ...l, hidden: l.hidden.includes(id) ? l.hidden.filter(one => one !== id) : [...l.hidden, id] })
+
+    return (
+      <Box flexDirection="column" paddingX={1}>
+        <Text dimColor>Pick the sections you want and their order. Saved for every new session.</Text>
+        {ids.map((id, i) => {
+          const isHidden = l.hidden.includes(id)
+          return (
+            <Box key={`set-${id}`} flexDirection="row" justifyContent="space-between">
+              <Text dimColor={isHidden} strikethrough={isHidden}>{SECTIONS.find(([one]) => one === id)?.[1] ?? id}</Text>
+              <Box flexDirection="row" columnGap={1}>
+                <Button key={`set-show-${id}`} label={isHidden ? 'Show' : 'Hide'} onPress={() => toggle(id)} />
+                <Button key={`set-up-${id}`} label="↑" onPress={() => move(id, -1)} dimColor={i === 0} />
+                <Button key={`set-down-${id}`} label="↓" onPress={() => move(id, 1)} dimColor={i === ids.length - 1} />
+              </Box>
+            </Box>
+          )
+        })}
+        <Box key="set-footer" flexDirection="row" columnGap={1} marginTop={1}>
+          <Button key="set-reset" label="Reset" onPress={() => saveLayout($, DEFAULT_LAYOUT)} />
+          <Button key="set-done" label="Done" onPress={() => $.ui.close({ id: SETTINGS })} />
+        </Box>
+      </Box>
+    )
+  })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const ui = $.ui.resolve(e)
@@ -905,6 +989,18 @@ export const register: Register = on => {
             <Text bold color={INK} backgroundColor={pillColor(snap.percent)}>{` ${snap.percent}% `}</Text>
           </Text>
         )
+    const check = checkState(s)
+    const checkLine = {
+      none: '',
+      passed: `Checked after the last edit: passed (${s.lastCheck?.text ?? ''})`,
+      failed: `Checked after the last edit: failed (${s.lastCheck?.text ?? ''})`,
+      unchecked: 'Not checked since the last edit: no tests, lint or build ran after it',
+    }[check]
+    const changesSummary = [
+      s.effects.length > 0 ? `${s.effects.length} outside` : '',
+      s.touched.length > 0 ? `${s.touched.length} files` : '',
+      check === 'none' ? '' : check,
+    ].filter(Boolean).join(' · ')
     const read_ = tokensRead(s)
     const cached = read_ === 0 ? 0 : Math.round((s.cacheReadTokens / read_) * 100)
 
@@ -916,10 +1012,10 @@ export const register: Register = on => {
       await update($, isEditingFocus, () => false)
     }
 
-    return (
-      <Box flexDirection="column">
-        {/* Folded, the note rides on the header line, cut with an ellipsis; open, it gets its own row and Edit. */}
-        {section('focus', 'working on', folded.includes('focus') && note !== ''
+    // Every card is built, then shown in the person's saved order, hidden ones left out (Settings).
+    const cards: Record<string, JSX.Element> = {
+      // Folded, the note rides on the header line, cut with an ellipsis; open, it gets its own row and Edit.
+      focus: section('focus', 'working on', folded.includes('focus') && note !== ''
           ? <Box key="focus-summary" flexGrow={1} flexShrink={1} marginLeft={1} minWidth={0}><Text wrap="truncate-end">{note}</Text></Box>
           : '', [
           ...(isEditing && Input
@@ -934,8 +1030,8 @@ export const register: Register = on => {
                   {Input && <Button key="focus-edit" label="Edit" onPress={() => update($, isEditingFocus, () => true)} />}
                 </Box>,
               ]),
-        ])}
-        {section('context', 'context', ctxSummary, [
+        ]),
+      context: section('context', 'context', ctxSummary, [
           ...legend.map(sl => (
             <Box key={`leg-${sl.label}`} flexDirection="row" justifyContent="space-between">
               <Text wrap="truncate">
@@ -950,14 +1046,14 @@ export const register: Register = on => {
             </Box>
           )),
           ...(s.deferredTokens > 0 ? [<Text dimColor>{`+ ${compact(s.deferredTokens)} of tools loaded only when needed`}</Text>] : []),
-        ], bar)}
-        {section('assumptions', 'assumptions', `${shownNotes(s.assumptions)} open`, [
+        ], bar),
+      assumptions: section('assumptions', 'assumptions', `${shownNotes(s.assumptions)} open`, [
           ...(s.assumptions.every(one => one.status === 'cleared')
             ? [<Text dimColor>None open. They appear here as Claude makes them.</Text>]
             : []),
           ...notes(s.assumptions),
-        ])}
-        {section('undone', 'loose ends', todo.length === 0 ? '' : `${todo.length} open`, [
+        ]),
+      undone: section('undone', 'loose ends', todo.length === 0 ? '' : `${todo.length} open`, [
           ...(todo.length === 0 ? [<Text dimColor>Nothing flagged. Work Claude puts off shows up here.</Text>] : []),
           ...todo.map((one, i) => (
             <Box key={`undone-${one.id}`} flexDirection="column" marginTop={i === 0 ? 0 : 1}>
@@ -972,8 +1068,8 @@ export const register: Register = on => {
             </Box>
           )),
           ...(todo.length > 0 ? [<Button key="undone-clear" label="x Clear all" hotkey="x" onPress={() => clear()} />] : []),
-        ])}
-        {section('asks', 'action items', waiting.length === 0 ? '' : `${waiting.length} waiting`, waiting.length === 0
+        ]),
+      asks: section('asks', 'action items', waiting.length === 0 ? '' : `${waiting.length} waiting`, waiting.length === 0
           ? [<Text dimColor>Nothing waiting on you.</Text>]
           : [
               ...waiting.map((a, i) => (
@@ -984,12 +1080,12 @@ export const register: Register = on => {
                 </Box>
               )),
               <Box key="asks-clear-row" marginTop={1}><Button key="asks-clear" label="Clear all" onPress={clearAsks} /></Box>,
-            ])}
-        {section('agents', 'subagents', `${s.agents.filter(row => isRunning(row, s.now)).length} running`, [
+            ]),
+      agents: section('agents', 'subagents', `${s.agents.filter(row => isRunning(row, s.now)).length} running`, [
           ...(s.agents.length === 0 ? [<Text dimColor>None started yet</Text>] : []),
           ...agentRows(6),
-        ])}
-        {section('cost', 'cost and tokens', money(s.costUsd), [
+        ]),
+      cost: section('cost', 'cost and tokens', money(s.costUsd), [
           line('Cost, whole session', money(s.costUsd)),
           line('Tokens read', compact(read_)),
           line('  served from cache', `${cached}%`, SLATE),
@@ -997,7 +1093,35 @@ export const register: Register = on => {
           line('Turns', `${s.turns}`),
           <Text dimColor>Tokens and turns count from when this loaded</Text>,
           ...(s.tickError !== '' ? [<Text key="p-timer" color={ACCENT}>{`Timer error, ${s.tickError}`}</Text>] : []),
-        ])}
+        ]),
+      changes: section('changes', 'changes', changesSummary, [
+          ...(s.effects.length === 0 && s.touched.length === 0
+            ? [<Text key="ch-empty" dimColor>Nothing yet. Pushes, merges, deletes, installs and edited files show up here.</Text>]
+            : []),
+          ...(s.effects.length > 0 ? [<Text key="ch-out" dimColor>Outside this machine</Text>] : []),
+          ...[...s.effects].reverse().slice(0, 10).map((one, i) => (
+            <Box key={`ch-e${i}`} flexDirection="row" justifyContent="space-between">
+              <Text color={one.isFailed ? ACCENT : undefined} wrap="truncate-end">{`${one.isFailed ? '✗' : '✓'} ${one.text}`}</Text>
+              <Text dimColor>{elapsed(one.at - s.openedAt)}</Text>
+            </Box>
+          )),
+          ...(s.touched.length > 0 ? [<Text key="ch-files" dimColor>{`Files edited (${s.touched.length})`}</Text>] : []),
+          ...[...s.touched].reverse().slice(0, 8).map((one, i) => (
+            <Box key={`ch-f${i}`} flexDirection="row" justifyContent="space-between">
+              <Text wrap="truncate-end">{one.path.split(/[\\/]/).slice(-2).join('/')}</Text>
+              <Text dimColor>{one.edits === 1 ? '1 edit' : `${one.edits} edits`}</Text>
+            </Box>
+          )),
+          ...(check === 'none' ? [] : [<Text key="ch-check" color={check === 'passed' ? OLIVE : ACCENT} wrap="wrap">{checkLine}</Text>]),
+        ]),
+    }
+
+    return (
+      <Box flexDirection="column">
+        {arrange(await read($, layout)).filter(id => cards[id] !== undefined).map(id => cards[id])}
+        <Box key="settings-row" flexDirection="row" justifyContent="flex-end">
+          <Button key="open-settings" plain label="Settings" onPress={() => openSettings($)} />
+        </Box>
       </Box>
     )
   })
