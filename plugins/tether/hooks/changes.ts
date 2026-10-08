@@ -19,6 +19,9 @@ const MCP_WRITE = /^mcp__(.+?)__((create|update|delete|send|post|merge|publish|a
 // A command that checks work: tests, lint, type checks, builds, plugin validation.
 const CHECK = /\b(pytest|jest|vitest|mocha|ruff|eslint|tsc|mypy|pylint|flake8|(npm|pnpm|yarn|bun)\s+(run\s+)?(test|lint|build|check|typecheck)|cargo\s+(test|check|clippy)|go\s+(test|vet)|make\s+(test|check|lint)|claude\s+plugin\s+(test|validate)|dbt\s+(test|build))\b/
 export const WRITERS = ['Edit', 'Write', 'MultiEdit', 'NotebookEdit']
+// Prose and notes: listed as edited, but no test or lint is expected after them.
+const PROSE = /\.(md|mdx|markdown|txt|rst|adoc|org)$/i
+const isCode = (path: string) => !PROSE.test(path)
 const MAX_EFFECTS = 50
 const MAX_FILES = 40
 
@@ -45,16 +48,16 @@ export function footprint(s: Stats, tool: string, input: Record<string, unknown>
     if (path !== '') {
       const before = s.touched.find(one => one.path === path)
       change.touched = [...s.touched.filter(one => one.path !== path), { path, edits: (before?.edits ?? 0) + 1, at }].slice(-MAX_FILES)
-      change.lastEditAt = at
+      if (isCode(path)) change.lastEditAt = at
     }
   }
 
   return change
 }
 
-/** Whether the work was checked after the last edit: no edits yet, passed, failed, or not run. */
+/** Whether code was checked after its last edit: no code edits yet, passed, failed, or not run. */
 export function checkState(s: Pick<Stats, 'touched' | 'lastEditAt' | 'lastCheck'>): 'none' | 'passed' | 'failed' | 'unchecked' {
-  if (s.touched.length === 0) return 'none'
+  if (!s.touched.some(one => isCode(one.path))) return 'none'
   if (s.lastCheck === null || s.lastCheck.at < s.lastEditAt) return 'unchecked'
   return s.lastCheck.isPassed ? 'passed' : 'failed'
 }

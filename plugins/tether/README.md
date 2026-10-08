@@ -35,7 +35,7 @@ Claude adds asks itself through a tool, `track`, and resolves them when your rep
 
 **Cost and tokens** shows session cost, tokens read and written, and the share served from cache.
 
-**Changes** is the session's footprint, kept only until the session closes. Its first list is everything that reached outside your machine or is hard to undo: pushes, PR merges, branch deletes, `rm`, plugin installs, deploys and MCP calls that write, each marked passed or failed. Its second list is the files Claude edited, with edit counts. The last line says whether tests, lint or a build ran after the last edit, and whether they passed. Folded, the header sums it up, for example "3 outside · 5 files · unchecked".
+**Changes** is the session's footprint, kept only until the session closes. Its first list is everything that reached outside your machine or is hard to undo: pushes, PR merges, branch deletes, `rm`, plugin installs, deploys and MCP calls that write, each marked passed or failed. Its second list is the files Claude edited, with edit counts; click a file name to open the file. The last line says whether tests, lint or a build ran after the last code edit, and whether they passed; edits to notes and other prose (`.md`, `.txt` and similar) don't ask for one. Folded, the header sums it up, for example "3 outside · 5 files · unchecked".
 
 **Settings**, at the bottom of the pane or through `/tether settings`, lists every section with Show or Hide and buttons to move it up or down. Reset restores the default order with every section shown. Your choices are saved for every new session.
 
