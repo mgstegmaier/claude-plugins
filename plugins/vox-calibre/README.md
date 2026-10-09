@@ -3,6 +3,8 @@
 Vox Calibre is a focused, natural, plain-language writing style, packaged as a Claude Code output style. 
 It's precise, but with a human voice. The precision rules are adapted from ASD-STE100 (the simplified technical
 English standard), and the voice is influenced by the Microsoft and GOV.UK plain-language guides among many other sources.
+Six entries in the banned list (binary contrasts, throat-clearing, intensifiers, vague declaratives, false agency, and
+business jargon) are adapted from [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) (MIT).
 Claude uses short everyday words, names the actor, puts numbers where adjectives would go, and
 defines terms where they first appear.
 
