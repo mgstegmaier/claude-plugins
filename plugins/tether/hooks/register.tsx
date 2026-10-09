@@ -225,6 +225,8 @@ const isLayout = (v: unknown): v is Layout =>
 const asks = atom({ plugin: 'tether', key: 'asks' } as const, [])
 const nextAsk = atom({ plugin: 'tether', key: 'nextAsk' } as const, 1)
 const closedAsks = atom({ plugin: 'tether', key: 'closedAsks' } as const, [])
+// Main turns started; asks added in one turn share it, the backstop's included.
+const askBatch = atom({ plugin: 'tether', key: 'askBatch' } as const, 0)
 
 // The session's stored value may predate a field added since: fill the gaps.
 const whole = (s: Stats): Stats => ({
@@ -374,14 +376,16 @@ const rememberAsks = ($: EngineInterface, texts: string[]) =>
   texts.length ? update($, closedAsks, l => [...l, ...texts].slice(-20)) : Promise.resolve([])
 
 const applyAsks = async ($: EngineInterface, change: Change): Promise<void> => {
+  const batch = await read($, askBatch)
   const added: Ask[] = []
   for (const item of change.add) {
     let id = 0
     await update($, nextAsk, n => ((id = n), n + 1))
-    added.push({ ...item, id })
+    added.push({ ...item, id, batch })
   }
-  const gone = new Set(change.resolve)
   const before = await read($, asks)
+  // A new batch replaces every ask from an earlier turn, answered or not: the list never goes stale.
+  const gone = new Set([...change.resolve, ...(added.length ? before.filter(a => (a.batch ?? 0) < batch).map(a => a.id) : [])])
   await update($, asks, l => [...l.filter(a => !gone.has(a.id)), ...added])
   await rememberAsks($, before.filter(a => gone.has(a.id)).map(a => a.text))
   if (added.length) {
@@ -558,6 +562,7 @@ export const register: Register = on => {
 
   on('turn.start', async ($, e, next) => {
     isTracked = false
+    await update($, askBatch, n => n + 1)
 
     return next(e)
   })
