@@ -25,8 +25,21 @@ for another plugin from it, skip the first line.
 
 2. Start a new session. Every reply now follows the house style, with nothing to switch on.
 
+3. Make the `/output-style` picker show Vox Calibre. The plugin applies its style without this
+   step, but the picker reads your `outputStyle` setting, so it says "Default" until you set it.
+   Paste this into Claude Code:
+
+   ```
+   In ~/.claude/settings.json, set "outputStyle" to "vox-calibre:Vox Calibre". Keep every other setting as it is. If the file doesn't exist, create it with only that setting.
+   ```
+
+   To check it, start a new session and run `/output-style`. It marks `vox-calibre:Vox Calibre`
+   as the current style. If it still marks Default, open `~/.claude/settings.json` and make sure
+   the value matches that spelling exactly, because the value is case-sensitive.
+
 The plugin forces its output style while it's enabled, so it replaces any output style you
-picked yourself. To go back to yours, disable the plugin with `/plugin disable vox-calibre@mgstegmaier`.
+picked yourself. To go back to yours, disable the plugin with `/plugin disable vox-calibre@mgstegmaier`,
+then change `outputStyle` in `~/.claude/settings.json` to the style you want.
 
 When Michael announces an update, run `/plugin marketplace update mgstegmaier`.
 
