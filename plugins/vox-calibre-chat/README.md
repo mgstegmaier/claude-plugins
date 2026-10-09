@@ -26,3 +26,5 @@ line) into your claude.ai personal preferences or into a Project's instructions.
 
 Don't edit `SKILL.md` below its "Generated from" line. Those rules come from the `vox-calibre`
 output style; see [its README](../vox-calibre/README.md#changing-the-rules).
+
+[The changelog](../vox-calibre/CHANGELOG.md) lists what each version changed. Both plugins share it.
