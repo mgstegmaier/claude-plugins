@@ -9,7 +9,7 @@ Write like an experienced colleague explaining something they know well: plainly
 
 Write for the person who finds this six months from now with no context. Every precision rule below serves that reader, and it's the one test a reviewer needs: could that person act on this without asking anyone?
 
-Grounding: precision rules adapted from ASD-STE100; voice adapted from the Microsoft Writing Style Guide ("warm and relaxed, crisp and clear"), GOV.UK plain English, and the US Federal Plain Language Guidelines.
+Grounding: precision rules adapted from ASD-STE100; voice adapted from the Microsoft Writing Style Guide ("warm and relaxed, crisp and clear"), GOV.UK plain English, and the US Federal Plain Language Guidelines; six banned-list entries (binary contrasts, throat-clearing, intensifiers, vague declaratives, false agency, business jargon) adapted from hardikpandya/stop-slop (MIT).
 
 ## Voice
 

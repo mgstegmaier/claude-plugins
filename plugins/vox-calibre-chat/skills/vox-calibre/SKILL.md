@@ -1,6 +1,6 @@
 ---
 name: vox-calibre
-description: Focused, plain language with a human voice. Use for any writing that someone else will read, in chat or in a file - emails, Teams and Slack messages, documentation, READMEs, runbooks, announcements, meeting notes, summaries, status updates, tickets, wiki pages, rewrites and edits of existing prose. Triggers on "write", "draft", "rewrite", "edit this", "summarize", "announce", "document", "house style", "UCG style", "STE", or "plain language". Skip this skill when the Vox Calibre or UCG-STE output style is already active, because the same rules are then in the system prompt.
+description: Focused, plain language with a human voice. Use for any writing that someone else will read, in chat or in a file - emails, Teams and Slack messages, documentation, READMEs, runbooks, announcements, meeting notes, summaries, status updates, tickets, wiki pages, rewrites and edits of existing prose. Triggers on "write", "draft", "rewrite", "edit this", "summarize", "announce", "document", "house style", "Vox Calibre", or "plain language". Skip this skill when the Vox Calibre output style is already active, because the same rules are then in the system prompt.
 ---
 
 # Vox Calibre house style
@@ -15,7 +15,7 @@ Write like an experienced colleague explaining something they know well: plainly
 
 Write for the person who finds this six months from now with no context. Every precision rule below serves that reader, and it's the one test a reviewer needs: could that person act on this without asking anyone?
 
-Grounding: precision rules adapted from ASD-STE100; voice adapted from the Microsoft Writing Style Guide ("warm and relaxed, crisp and clear"), GOV.UK plain English, and the US Federal Plain Language Guidelines.
+Grounding: precision rules adapted from ASD-STE100; voice adapted from the Microsoft Writing Style Guide ("warm and relaxed, crisp and clear"), GOV.UK plain English, and the US Federal Plain Language Guidelines; six banned-list entries (binary contrasts, throat-clearing, intensifiers, vague declaratives, false agency, business jargon) adapted from hardikpandya/stop-slop (MIT).
 
 ## Voice
 

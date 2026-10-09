@@ -63,7 +63,7 @@ The plugin forces its output style while it's enabled, so it replaces any output
 picked yourself. To go back to yours, disable the plugin with `/plugin disable vox-calibre@mgstegmaier`,
 then change `outputStyle` in `~/.claude/settings.json` to the style you want.
 
-When Michael announces an update, run `/plugin marketplace update mgstegmaier`.
+When Michael announces an update, run `/plugin marketplace update mgstegmaier`. [CHANGELOG.md](CHANGELOG.md) lists what each version changed.
 
 ## Changing the rules
 
@@ -74,6 +74,7 @@ generated from it.
 2. From the repo root, run `python3 scripts/sync-vox-calibre.py` to copy the change into
    `plugins/vox-calibre-chat/skills/vox-calibre/SKILL.md`.
 3. Bump `version` in both plugins' `.claude-plugin/plugin.json` and in both marketplace entries.
+4. Add an entry for the new version at the top of `plugins/vox-calibre/CHANGELOG.md`.
 
 Before pushing, `python3 scripts/sync-vox-calibre.py --check` exits with an error if the two
 copies differ. If it fails, run step 2 and commit the result.
