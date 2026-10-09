@@ -11,7 +11,8 @@ export type Assumption = {
 
 export type AskKind = 'decision' | 'choice' | 'todo' | 'question' | 'review'
 // `drafted`: the reply a button put in the prompt box; sending it clears the ask.
-export type Ask = { id: number; kind: AskKind; text: string; options?: string[]; drafted?: string }
+// `batch` is the main turn it was added in; absent on ones stored before 0.10.0, which count as turn 0.
+export type Ask = { id: number; kind: AskKind; text: string; options?: string[]; drafted?: string; batch?: number }
 
 export type Undone = {
   id: number
@@ -92,6 +93,6 @@ export type Stats = {
 
 declare module 'claude-code' {
   interface PluginState {
-    tether: { stats: Stats; collapsed: string[]; focus: string; isEditingFocus: boolean; isFocusCustom: boolean; asks: Ask[]; nextAsk: number; closedAsks: string[]; layout: Layout }
+    tether: { stats: Stats; collapsed: string[]; focus: string; isEditingFocus: boolean; isFocusCustom: boolean; asks: Ask[]; nextAsk: number; closedAsks: string[]; askBatch: number; layout: Layout }
   }
 }

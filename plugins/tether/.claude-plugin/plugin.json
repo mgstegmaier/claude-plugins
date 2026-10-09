@@ -1,7 +1,7 @@
 {
   "name": "tether",
   "displayName": "Tether",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Session dashboard: a /tether pane for a working-on note, context, the assumptions Claude is making, the work it puts off, action items, subagents and cost. Every section folds.",
   "author": {
     "name": "ClariSortAi, adapted by Michael Stegmaier"
