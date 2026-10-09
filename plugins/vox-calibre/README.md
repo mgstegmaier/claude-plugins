@@ -27,13 +27,33 @@ for another plugin from it, skip the first line.
 
 2. Start a new session. Every reply now follows the house style, with nothing to switch on.
 
-3. Make the `/output-style` picker show Vox Calibre. The plugin applies its style without this
-   step, but the picker reads your `outputStyle` setting, so it says "Default" until you set it.
-   Paste this into Claude Code:
+3. Optional: make the `/output-style` picker show Vox Calibre. You already have the style after
+   step 2, so skipping this changes nothing about Claude's replies. The picker reads your
+   `outputStyle` setting in `~/.claude/settings.json`, so it says "Default" until you set it.
+   Use the first of these that works for you:
 
-   ```
-   In ~/.claude/settings.json, set "outputStyle" to "vox-calibre:Vox Calibre". Keep every other setting as it is. If the file doesn't exist, create it with only that setting.
-   ```
+   - In the Claude desktop app, open Settings, choose Claude Code, and under Output style
+     pick `vox-calibre:Vox Calibre`. If it isn't in the list, use one of the other two ways.
+   - Ask Claude Code outside auto mode. Auto mode blocks Claude from editing its own
+     settings file. Switch the session's permission mode to one that asks before edits, paste
+     this, and approve the edit when Claude offers it:
+
+     ```
+     In ~/.claude/settings.json, set "outputStyle" to "vox-calibre:Vox Calibre". Keep every other setting as it is. If the file doesn't exist, create it with only that setting.
+     ```
+
+   - Edit the file by hand. Open `~/.claude/settings.json` in any editor and add this line
+     inside the outer braces, with a comma after the line before it:
+
+     ```
+     "outputStyle": "vox-calibre:Vox Calibre"
+     ```
+
+     If the file doesn't exist, create it with `{ "outputStyle": "vox-calibre:Vox Calibre" }`
+     as its only content.
+
+   Don't use `/output-style` for this. It writes to the current project's
+   `.claude/settings.local.json`, so it sets the style for that one project only.
 
    To check it, start a new session and run `/output-style`. It marks `vox-calibre:Vox Calibre`
    as the current style. If it still marks Default, open `~/.claude/settings.json` and make sure
