@@ -51,8 +51,10 @@ Formatting
 - Docs describe how things work now, in the present tense. Reports and notes use the past tense.
 - When writing about people, describe what happened and what process was missing, not anyone's character or motives.
 
-When a reply waits on me for a decision or an action, end it with a blockquote, one standalone item per line, and a blank ">" line between items:
-> **Needs you:** Send the draft now, or wait for Friday's numbers?
-Include anything I haven't answered from earlier. Leave it off when you need nothing from me.
+When a reply waits on me, end it with a blockquote, one standalone item per line, and a blank ">" line between items. Label what I answer in chat (approve, pick, answer, check) "Decision:" and list those first. Label what I have to go do myself "Needs you:".
+> **Decision:** Send the draft now, or wait for Friday's numbers?
+>
+> **Needs you:** Share the folder with Dana so I can read it.
+Include anything I haven't answered or done from earlier. Leave it off when you need nothing from me.
 
 Keep these exact: commands, file paths, code, error messages, URLs, and quoted text. The rules apply to prose only.

@@ -121,27 +121,33 @@ When you report on a task you completed, write these in order and nothing else:
 
 1. What changed. One line per file, with the path.
 2. What you did not do, and why.
-3. What the reader needs to decide, written as the "Needs you" callout below.
+3. What the reader needs to decide or do, written as the callout below.
 
 Skip introductions, recaps, and reassurance. Don't restate the task. Don't explain code the reader can see in the diff. Under 150 words unless asked for more. Adapted from Nathan Renard's "My AI output playbook" (2026-09-05).
 
-## When a reply needs something from the reader
+## Whe## When a reply needs something from the reader
 
-In chat, when a reply waits on the reader for a decision, an answer, a check, or an action only they can take, end the reply with a blockquote that names each thing. Nothing comes after it.
+In chat, when a reply waits on the reader, end the reply with a blockquote that names each open item. Nothing comes after it. Each item starts with one of two labels:
 
-> **Needs you:** Ship 0.9.2 now, or wait for the Windows test?
+- `Decision:` is something the reader answers in chat before you act. It covers approving or denying an action, picking between options, answering a question only they can answer, and checking something and reporting back.
+- `Needs you:` is something the reader has to do themselves, outside the chat, because you can't or won't do it. Examples are running a command on another machine, typing a slash command, changing an admin setting, and messaging someone.
+
+> **Decision:** Ship 0.9.2 now, or wait for the Windows test?
 >
-> **Needs you:** Delete the merged branch `fix/login`?
+> **Decision:** Delete the merged branch `fix/login`?
+>
+> **Needs you:** Run `/reload-plugins` so the new version loads.
 
 - One item per line, each one standalone: name the exact action or the options, so the line makes sense without the rest of the reply.
+- List the decisions first, then the `Needs you:` items.
 - Put a blank `>` line between items. Without it, the lines run together into one block that's hard to scan.
-- Put every open item in the callout, including one you asked in an earlier reply that the reader hasn't answered yet. The callout is the only list, so an item left out of it is dropped.
+- Put every open item in the callout, including one from an earlier reply that the reader hasn't answered or done yet. The callout is the only list, so an item left out of it is dropped.
 - A reply that needs nothing from the reader ends without a callout. Don't add one for a rhetorical question or for work you'll do yourself.
 - Use a plain blockquote. It renders in the terminal, the desktop app, and claude.ai, where GitHub-style alert boxes don't always.
 
-The callout lives in the reply because a list stored anywhere else goes stale once the conversation moves on.
+The two labels tell the reader which items they can answer from the keyboard and which ones mean leaving the chat. The callout lives in the reply because a list stored anywhere else goes stale once the conversation moves on.
 
-## Change notices
+nge notices
 
 When your work changes something another team consumes, a table, an endpoint, a file format, a report, the message telling them is organized by the thing that changed and its state, not by what you did or by the order they asked. One block per object.
 
