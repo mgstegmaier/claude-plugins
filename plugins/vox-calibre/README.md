@@ -67,14 +67,23 @@ When Michael announces an update, run `/plugin marketplace update mgstegmaier`. 
 
 ## Changing the rules
 
-`output-styles/vox-calibre.md` is the only copy you edit. The `vox-calibre-chat` skill's body is
-generated from it.
+`output-styles/vox-calibre.md` is the only copy you edit. Two skills are generated from it: the
+`vox-calibre-chat` skill for claude.ai, and the ChatGPT skill at
+`chatgpt/vox-calibre/vox-calibre/SKILL.md`. The ChatGPT skill leaves out the sections on reporting
+finished work and change notices, and the humanizer pass, because those assume Claude Code. The
+ChatGPT custom-instructions files in `chatgpt/vox-calibre/` are hand-condensed copies, so they
+don't update on their own.
 
 1. Edit `plugins/vox-calibre/output-styles/vox-calibre.md`.
-2. From the repo root, run `python3 scripts/sync-vox-calibre.py` to copy the change into
-   `plugins/vox-calibre-chat/skills/vox-calibre/SKILL.md`.
-3. Bump `version` in both plugins' `.claude-plugin/plugin.json` and in both marketplace entries.
-4. Add an entry for the new version at the top of `plugins/vox-calibre/CHANGELOG.md`.
+2. From the repo root, run `python3 scripts/sync-vox-calibre.py` to copy the change into both
+   skills. If it stops with `CHATGPT_DROP_TEXT no longer matches`, a passage the ChatGPT skill
+   removes has changed wording. Update that string in the script to match, then run it again.
+3. If the change touches a rule that `chatgpt/vox-calibre/custom-instructions.md` or
+   `custom-instructions-short.md` also carries, edit those files by hand.
+4. Bump `version` in both plugins' `.claude-plugin/plugin.json` and in both marketplace entries.
+5. Add an entry for the new version at the top of `plugins/vox-calibre/CHANGELOG.md`.
 
-Before pushing, `python3 scripts/sync-vox-calibre.py --check` exits with an error if the two
-copies differ. If it fails, run step 2 and commit the result.
+Before pushing, run `python3 scripts/sync-vox-calibre.py --check`. It exits with an error if
+either skill has drifted from the output style, or if a custom-instructions file goes over
+ChatGPT's limit (5,000 characters for the full file, 1,500 for the short one). If a skill has
+drifted, run step 2 and commit the result. If a file is too long, cut it down.
