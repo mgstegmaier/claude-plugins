@@ -20,3 +20,7 @@ This repo is a Claude Code plugin marketplace named `mgstegmaier`. Each plugin l
 | [`vox-calibre-chat`](plugins/vox-calibre-chat/) | The same Vox Calibre rules as a skill for claude.ai chat, which has no output styles. |
 
 `context-band` and `tether` need Claude Code 2.1.289 or later. Check with `claude --version`.
+
+## Not plugins
+
+[`chatgpt/vox-calibre`](chatgpt/vox-calibre/) holds Vox Calibre for ChatGPT: a skill for Business, Enterprise, and Edu workspaces, and custom instructions for every plan, with setup steps for each.
