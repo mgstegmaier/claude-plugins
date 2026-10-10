@@ -3,6 +3,11 @@
 This log covers both `vox-calibre` (the Claude Code output style) and `vox-calibre-chat` (the
 claude.ai skill). They share one set of rules and always release with the same version number.
 
+## 0.3.1 (2026-10-09)
+
+- A "Needs you" callout with more than one item puts a blank `>` line between items, so each item is
+  its own paragraph instead of running together with the others. The example shows two items.
+
 ## 0.3.0 (2026-10-09)
 
 - New section, "When a reply needs something from the reader": in chat, a reply that waits on the

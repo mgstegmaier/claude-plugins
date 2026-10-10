@@ -130,8 +130,11 @@ Skip introductions, recaps, and reassurance. Don't restate the task. Don't expla
 In chat, when a reply waits on the reader for a decision, an answer, a check, or an action only they can take, end the reply with a blockquote that names each thing. Nothing comes after it.
 
 > **Needs you:** Ship 0.9.2 now, or wait for the Windows test?
+>
+> **Needs you:** Delete the merged branch `fix/login`?
 
-- One line per item, each one standalone: name the exact action or the options, so the line makes sense without the rest of the reply.
+- One item per line, each one standalone: name the exact action or the options, so the line makes sense without the rest of the reply.
+- Put a blank `>` line between items. Without it, the lines run together into one block that's hard to scan.
 - Put every open item in the callout, including one you asked in an earlier reply that the reader hasn't answered yet. The callout is the only list, so an item left out of it is dropped.
 - A reply that needs nothing from the reader ends without a callout. Don't add one for a rhetorical question or for work you'll do yourself.
 - Use a plain blockquote. It renders in the terminal, the desktop app, and claude.ai, where GitHub-style alert boxes don't always.
