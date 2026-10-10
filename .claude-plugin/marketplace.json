@@ -69,6 +69,20 @@
         "plain-language",
         "claude-ai"
       ]
+    },
+    {
+      "name": "cache-tax",
+      "displayName": "Cache Tax (ask fork)",
+      "description": "Fork of karanb192/cache-tax 2.2.1 (MIT): /cache-tax guard ask shows a cold send's estimated rewrite cost in a dialog with Proceed and Start new session buttons, so you never retype the prompt. Keeps the one-hour prompt cache warm during breaks with /keepwarm. Needs Claude Code 2.1.287 or later. Install this or the upstream cache-tax, not both.",
+      "source": "./plugins/cache-tax",
+      "version": "2.2.1-ask.1",
+      "category": "productivity",
+      "keywords": [
+        "mod",
+        "prompt-cache",
+        "cost",
+        "fork"
+      ]
     }
   ]
 }
