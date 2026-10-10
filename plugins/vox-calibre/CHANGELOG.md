@@ -3,6 +3,12 @@
 This log covers both `vox-calibre` (the Claude Code output style) and `vox-calibre-chat` (the
 claude.ai skill). They share one set of rules and always release with the same version number.
 
+## 0.4.0 (2026-10-10)
+
+- The callout at the end of a reply now uses two labels. `Decision:` marks what the reader answers in
+  chat (approve or deny, pick an option, answer a question, check and report back). `Needs you:`
+  marks what the reader has to do themselves outside the chat. Decisions come first.
+
 ## 0.3.1 (2026-10-09)
 
 - A "Needs you" callout with more than one item puts a blank `>` line between items, so each item is
