@@ -3,6 +3,11 @@
 This log covers both `vox-calibre` (the Claude Code output style) and `vox-calibre-chat` (the
 claude.ai skill). They share one set of rules and always release with the same version number.
 
+## 0.4.1 (2026-10-10)
+
+- Fixed two headings that 0.4.0 broke: "When a reply needs something from the reader" had a
+  stray "## Whe" in front of it, and "Change notices" had lost its "## Cha".
+
 ## 0.4.0 (2026-10-10)
 
 - The callout at the end of a reply now uses two labels. `Decision:` marks what the reader answers in
