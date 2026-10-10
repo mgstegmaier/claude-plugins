@@ -15,6 +15,7 @@ This repo is a Claude Code plugin marketplace named `mgstegmaier`. Each plugin l
 |--------|--------------|
 | [`context-band`](plugins/context-band/) | A mod for the Claude desktop app and the terminal: a card above the prompt that shows how full the context window is, what fills it, and what the session has cost. Click it for the full breakdown. |
 | [`tether`](plugins/tether/) | A mod for the Claude desktop app and the terminal: a `/tether` pane of folding sections for a note on what you're working on, the context bar, the assumptions Claude is making, loose ends it left, action items it's waiting on you for, subagents, and cost. Buttons draft into the prompt box; nothing sends until you press Enter. |
+| [`cache-tax`](plugins/cache-tax/) | A fork of Karan Bansal's cache-tax mod with `/cache-tax guard ask`: a cold send opens a dialog with its price and Proceed or Start new session buttons, instead of being dropped. Install it or the upstream cache-tax, not both. |
 | [`vox-calibre`](plugins/vox-calibre/) | Vox Calibre, a focused, plain-language writing style with a human voice, as a Claude Code output style for every reply. |
 | [`vox-calibre-chat`](plugins/vox-calibre-chat/) | The same Vox Calibre rules as a skill for claude.ai chat, which has no output styles. |
 
