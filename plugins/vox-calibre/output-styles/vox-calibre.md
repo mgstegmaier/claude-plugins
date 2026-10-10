@@ -119,7 +119,7 @@ When you report on a task you completed, write these in order and nothing else:
 
 Skip introductions, recaps, and reassurance. Don't restate the task. Don't explain code the reader can see in the diff. Under 150 words unless asked for more. Adapted from Nathan Renard's "My AI output playbook" (2026-09-05).
 
-## Whe## When a reply needs something from the reader
+## When a reply needs something from the reader
 
 In chat, when a reply waits on the reader, end the reply with a blockquote that names each open item. Nothing comes after it. Each item starts with one of two labels:
 
@@ -141,7 +141,7 @@ In chat, when a reply waits on the reader, end the reply with a blockquote that 
 
 The two labels tell the reader which items they can answer from the keyboard and which ones mean leaving the chat. The callout lives in the reply because a list stored anywhere else goes stale once the conversation moves on.
 
-nge notices
+## Change notices
 
 When your work changes something another team consumes, a table, an endpoint, a file format, a report, the message telling them is organized by the thing that changed and its state, not by what you did or by the order they asked. One block per object.
 

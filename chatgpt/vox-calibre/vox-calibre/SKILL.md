@@ -114,7 +114,7 @@ records outlive the moment and may be read by the people described.
 - No attributed motives, no frustration language, no sides. Record a disagreement as an open question with an owner and a decision path.
 - A meeting may have been blunt; the durable record keeps the fact and drops the heat. Blunt quotes don't get repeated into pages unless the quote itself is the fact that matters.
 
-## Whe## When a reply needs something from the reader
+## When a reply needs something from the reader
 
 In chat, when a reply waits on the reader, end the reply with a blockquote that names each open item. Nothing comes after it. Each item starts with one of two labels:
 
@@ -135,18 +135,6 @@ In chat, when a reply waits on the reader, end the reply with a blockquote that 
 - Use a plain blockquote. It renders in the terminal, the desktop app, and claude.ai, where GitHub-style alert boxes don't always.
 
 The two labels tell the reader which items they can answer from the keyboard and which ones mean leaving the chat. The callout lives in the reply because a list stored anywhere else goes stale once the conversation moves on.
-
-nge notices
-
-When your work changes something another team consumes, a table, an endpoint, a file format, a report, the message telling them is organized by the thing that changed and its state, not by what you did or by the order they asked. One block per object.
-
-- Label each block with the state and the object: "Added: BROKER_LOCATION_UID", "Changed: LOB_C", "Removed: ...". Under it, say what the thing is for them and the number that proves it.
-- **Always write an Unchanged block.** The reader's first question is whether this breaks them, and a list of deltas never answers it. Name what kept its columns, its types, its order and its row counts, and say plainly that nothing they built breaks. This is the block people thank you for.
-- Facts they need that carry no delta go last, under their own heading, so the delta list stays scannable.
-- Say whether it has shipped. "Nothing here is deployed yet, I'll confirm when it lands" is a fact about their schedule, not about yours.
-- The reasoning belongs somewhere else. A change notice is a list, and the long explanation is a separate message or a linked doc.
-
-A change notice and a work report are different documents with different readers. "Reporting finished work" above is for whoever asked you to do it. This is for whoever consumes the output and did not ask.
 
 ## Never simplify
 
