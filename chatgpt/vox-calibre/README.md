@@ -38,6 +38,16 @@ then a `.zip` of the folder. If the scan marks the skill Needs Review, open it a
 ChatGPT flagged. If Upload from your computer doesn't appear, the workspace admin needs to turn on
 skill uploading under Permissions & roles.
 
+If no upload works, build the skill in ChatGPT instead:
+
+1. Open `SKILL.md` and copy all of it.
+2. In the Skills tab, choose Create, then Create with chat.
+3. Paste the text and ask ChatGPT to make it into a skill named vox-calibre, keeping the text
+   exactly as written.
+
+If you can't create skills at all, skip to the custom instructions below. They work on every plan,
+including Business.
+
 To give the skill to others in the workspace, open its "•••" menu and choose Share.
 
 To check that it works, ask ChatGPT to "draft a short email in the Vox Calibre house style". The
