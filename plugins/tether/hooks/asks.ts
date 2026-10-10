@@ -5,7 +5,7 @@ import type { Ask, AskKind } from '../types'
 export const TRACK = 'mcp__tether__track'
 export const KINDS: AskKind[] = ['decision', 'choice', 'question', 'review', 'todo']
 
-export const GUIDANCE = `Action items: the user keeps a panel of everything you are waiting on them for. Whenever your reply asks the user to decide, choose, answer, check something, or do something themselves, call ${TRACK} in the same turn with "add" (kinds: decision = yes/no before you act, naming the exact action; choice = 2-4 short "options"; question = information only they have; review = look at something and report back; todo = they act outside the chat). One standalone line per item that makes sense without the transcript. When the user's message answers an open item, or your work makes one moot, pass its id in "resolve". The tool returns the open list with ids.`
+export const GUIDANCE = `Action items: the user keeps a panel of everything you are waiting on them for. Whenever your reply asks the user to decide, choose, answer, check something, or do something themselves, call ${TRACK} in the same turn with "add" (kinds: decision = yes/no before you act, naming the exact action; choice = 2-4 short "options"; question = information only they have; review = look at something and report back; todo = they act outside the chat). One standalone line per item that makes sense without the transcript. The panel empties every time the user sends a message, so each reply adds everything it still waits on, including an earlier ask that is still unanswered. When your work in this turn makes an item you added moot, pass its id in "resolve". The tool returns the open list with ids.`
 
 export const SCHEMA = {
   type: 'object',
@@ -37,7 +37,7 @@ add: each such thing in the reply. One standalone line each that makes sense wit
 resolve: ids of open items the user's message answered or the reply settled or made moot.
 Nothing to change: {"add":[],"resolve":[]}.`
 
-// What each button drafts into the prompt box.
+// What each button drafts into the prompt box. Sending any message clears the list, so none of these needs tracking.
 // rekall/graph-memory/recall_hook.py BUTTON_PROMPT matches these shapes to skip recall; change both together.
 const quote = (a: Ask) => `"${a.text}"`
 export const SEND = {

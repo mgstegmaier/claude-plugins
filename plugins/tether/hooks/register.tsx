@@ -220,13 +220,9 @@ const ordered = (l: Layout): string[] => {
 const arrange = (l: Layout): string[] => ordered(l).filter(id => !l.hidden.includes(id))
 const isLayout = (v: unknown): v is Layout =>
   typeof v === 'object' && v !== null && Array.isArray((v as Layout).order) && Array.isArray((v as Layout).hidden)
-// Open asks: the list, the next id, and the texts of the last 20 answered or resolved asks,
-// so the backstop never re-adds one.
+// Open asks: the list and the next id. The list holds only what Claude asked since the person last sent a message.
 const asks = atom({ plugin: 'tether', key: 'asks' } as const, [])
 const nextAsk = atom({ plugin: 'tether', key: 'nextAsk' } as const, 1)
-const closedAsks = atom({ plugin: 'tether', key: 'closedAsks' } as const, [])
-// Main turns started; asks added in one turn share it, the backstop's included.
-const askBatch = atom({ plugin: 'tether', key: 'askBatch' } as const, 0)
 
 // The session's stored value may predate a field added since: fill the gaps.
 const whole = (s: Stats): Stats => ({
@@ -372,57 +368,37 @@ const followTitle = async ($: EngineInterface, title: string | undefined): Promi
   }
 }
 
-const rememberAsks = ($: EngineInterface, texts: string[]) =>
-  texts.length ? update($, closedAsks, l => [...l, ...texts].slice(-20)) : Promise.resolve([])
-
 const applyAsks = async ($: EngineInterface, change: Change): Promise<void> => {
-  const batch = await read($, askBatch)
   const added: Ask[] = []
   for (const item of change.add) {
     let id = 0
     await update($, nextAsk, n => ((id = n), n + 1))
-    added.push({ ...item, id, batch })
+    added.push({ ...item, id })
   }
-  const before = await read($, asks)
-  // A new batch replaces every ask from an earlier turn, answered or not: the list never goes stale.
-  const gone = new Set([...change.resolve, ...(added.length ? before.filter(a => (a.batch ?? 0) < batch).map(a => a.id) : [])])
+  const gone = new Set(change.resolve)
   await update($, asks, l => [...l.filter(a => !gone.has(a.id)), ...added])
-  await rememberAsks($, before.filter(a => gone.has(a.id)).map(a => a.text))
   if (added.length) {
     $.ui.toast(`Waiting on you: ${(added[0]?.text ?? '').slice(0, 80)}`)
   }
-}
-
-// A sent prompt that holds a button's drafted reply answers that ask: drop it now
-// rather than wait for Claude to resolve it with `track`.
-const settleDrafted = async ($: EngineInterface, sent: string): Promise<void> => {
-  const answered = (await read($, asks)).filter(a => a.drafted !== undefined && sent.includes(a.drafted))
-  if (answered.length === 0) {
-    return
-  }
-  const gone = new Set(answered.map(a => a.id))
-  await update($, asks, l => l.filter(a => !gone.has(a.id)))
-  await rememberAsks($, answered.map(a => a.text))
 }
 
 // The backstop: when Claude's reply looks like it asks something and it never called
 // `track`, Haiku reads the reply and adds what it missed.
 const extractAsks = async ($: EngineInterface, prompt: string, answer: string): Promise<void> => {
   const list = await read($, asks)
-  const done = await read($, closedAsks)
   const r = await $.model.complete({
     model: 'haiku',
     system: BACKSTOP_SYSTEM,
-    prompt: `Open list:\n${list.map(a => `#${a.id} [${a.kind}] ${a.text}`).join('\n') || '(empty)'}\n\nRecently closed (never re-add):\n${done.join('\n') || '(none)'}\n\nUser's last message:\n${prompt.slice(-4000)}\n\nAssistant's reply:\n${answer.slice(-12000)}`,
+    prompt: `Open list:\n${list.map(a => `#${a.id} [${a.kind}] ${a.text}`).join('\n') || '(empty)'}\n\nUser's last message:\n${prompt.slice(-4000)}\n\nAssistant's reply:\n${answer.slice(-12000)}`,
     maxTokens: 800,
     effort: 'low',
   })
   if (!r.isAnswered) {
     return
   }
-  // Haiku re-adds reworded copies of open and just-answered asks; drop them here rather than trust the prompt.
+  // Haiku re-adds reworded copies of open asks and repeats itself; drop them here rather than trust the prompt.
   const change = parseChange(r.text)
-  const seen = [...list.map(a => a.text), ...done]
+  const seen = list.map(a => a.text)
   await applyAsks($, { ...change, add: change.add.filter(a => !isDuplicate(a.text, seen) && (seen.push(a.text), true)) })
 }
 
@@ -540,12 +516,14 @@ export const register: Register = on => {
   })
 
   // What the person asked for, kept for the check at the end of the turn.
+  // Sending anything also empties the action items: answered, ignored or moved on from, the
+  // list mirrors only the reply after this one, so it can't go stale. Claude re-asks what still matters.
   on('prompt.submit', async ($, e, next) => {
     const kind: string = e.origin.kind
 
     if (kind === 'composer' || kind === 'bridge' || kind === 'sdk') {
       await update($, stats, raw => ({ ...whole(raw), lastPrompt: e.text.slice(0, 4000) }))
-      await settleDrafted($, e.text)
+      await update($, asks, () => [])
     }
 
     return next(e)
@@ -562,7 +540,6 @@ export const register: Register = on => {
 
   on('turn.start', async ($, e, next) => {
     isTracked = false
-    await update($, askBatch, n => n + 1)
 
     return next(e)
   })
@@ -935,31 +912,15 @@ export const register: Register = on => {
       )
     }
 
-    // Open asks: each button drafts its reply into the prompt box, and the ask clears when
-    // that reply is sent. A finished reply ends in a blank line, so several pressed in a row
-    // stack as paragraphs. Discuss and Answer leave the cursor after their colon for typing,
-    // and start a conversation, so Discuss's ask stays until Claude resolves it with `track`.
-    // Dismiss drops it unsent.
-    const dismissAsk = async (a: Ask): Promise<void> => {
-      await update($, asks, l => l.filter(x => x.id !== a.id))
-      await rememberAsks($, [a.text])
-    }
-    // Clear all drops every ask unsent, for a list gone stale; remembered so the backstop doesn't re-add them.
-    const clearAsks = async (): Promise<void> => {
-      const all = await read($, asks)
-      await update($, asks, () => [])
-      await rememberAsks($, all.map(a => a.text))
-    }
+    // Open asks: each button drafts its reply into the prompt box, and sending any message
+    // clears the list. A finished reply ends in a blank line, so several pressed in a row
+    // stack as paragraphs. Discuss and Answer leave the cursor after their colon for typing.
+    // Dismiss and Clear all drop asks unsent.
+    const dismissAsk = (a: Ask) => update($, asks, l => l.filter(x => x.id !== a.id))
+    const clearAsks = () => update($, asks, () => [])
     const askButtons = (a: Ask) => {
       const b = (name: string, label: string, text: string) => (
-        <Button
-          key={`${name}${a.id}`}
-          label={label}
-          onPress={async () => {
-            await draft(text.endsWith(': ') ? text : `${text}\n\n`)
-            await update($, asks, l => l.map(x => (x.id === a.id ? { ...x, drafted: text.trim() } : x)))
-          }}
-        />
+        <Button key={`${name}${a.id}`} label={label} onPress={() => draft(text.endsWith(': ') ? text : `${text}\n\n`)} />
       )
       const discuss = <Button key={`discuss${a.id}`} label="Discuss" onPress={() => draft(SEND.discuss(a))} />
       switch (a.kind) {
@@ -1080,7 +1041,6 @@ export const register: Register = on => {
               ...waiting.map((a, i) => (
                 <Box key={`ask-${a.id}`} flexDirection="column" marginTop={i === 0 ? 0 : 1}>
                   <Text wrap="wrap">{a.text}</Text>
-                  {a.drafted !== undefined && <Text dimColor>In your prompt box. Clears when you send it.</Text>}
                   <Box columnGap={1} rowGap={1} flexWrap="wrap">{askButtons(a)}</Box>
                 </Box>
               )),

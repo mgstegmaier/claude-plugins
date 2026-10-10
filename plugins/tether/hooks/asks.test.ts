@@ -54,9 +54,9 @@ for (const surface of ['terminal', 'desktop'] as const) {
     on('model.complete', () => {
       haikuCalls++
       const text = [
-        // a new to-do, plus a reworded copy of open #1 that the duplicate check must drop
-        '{"add":[{"kind":"todo","text":"Run setup.py"},{"kind":"decision","text":"Should I delete the remote branch?"}],"resolve":[4]}',
-        // re-adds #5 after the person answered it with a button
+        // a new to-do, plus a reworded copy of itself that the duplicate check must drop
+        '{"add":[{"kind":"todo","text":"Run setup.py"},{"kind":"todo","text":"Run setup.py on your machine"}],"resolve":[]}',
+        // the next reply asks it again: the list emptied on send, so it comes back once
         '{"add":[{"kind":"todo","text":"Run setup.py on your machine"}],"resolve":[]}',
       ][haikuCalls - 1]
       return { value: { isAnswered: true, text } } as never
@@ -64,11 +64,14 @@ for (const surface of ['terminal', 'desktop'] as const) {
     on('turn.start', ($, e) => ({ turnId: e.turnId }) as never)
     on('turn.complete', () => ({ text: '' }) as never)
     on('prompt.submit', ($, e) => (sent.push(e.text), { text: e.text }) as never)
+  const track = async (add: { kind: string; text: string }[] = [], resolve: number[] = []) =>
+    (await $.tool.call({ tool: 'mcp__tether__track', add, resolve } as never)).text
     const filled: string[] = []
     const toasts: string[] = []
     on('ui.toast', ($, e) => (toasts.push(e.text), { value: {} }) as never)
     on('prompt.fill', ($, e) => (filled.push(e.text), { isFilled: true, text: e.text, cursor: e.text.length }) as never)
-    const turn = async (answer: string, during?: () => Promise<unknown>) => {
+    const turn = async (answer: string, during?: () => Promise<unknown>, prompt?: string) => {
+      if (prompt !== undefined) await $.prompt.submit({ text: prompt, origin: { kind: 'composer' } } as never)
       await $.turn.start({ text: 'hi', turnId: answer } as never)
       await during?.()
       await $.turn.complete({ answer, durationMs: 1, isAborted: false, turnId: answer, reason: 'answer' } as never)
@@ -89,15 +92,11 @@ for (const surface of ['terminal', 'desktop'] as const) {
     )
     expect(haikuCalls).toBe(0)
 
-    // turn 2: no ask in the reply, no track, no Haiku
-    await turn('I committed the files.')
-    expect(haikuCalls).toBe(0)
-
     const pane = await $.ui.mount({ plugin: 'tether', surface, component: 'Pane', requestId: 'tether', props: { bodyColumns: 90 } as never })
     for (const key of ['approve1', 'deny1', 'discuss1', 'pick0-2', 'pick1-2', 'discuss2', 'answer3', 'discuss3', 'dismiss3', 'good4'])
       expect(await pane.find({ key })).toBeDefined()
 
-    // every button drafts into the prompt box, sends nothing, and keeps the item until track resolves it
+    // every button drafts into the prompt box, sends nothing, and keeps the item
     await pane.press({ key: 'discuss1' })
     await pane.press({ key: 'deny1' })
     await pane.press({ key: 'pick1-2' })
@@ -106,46 +105,48 @@ for (const surface of ['terminal', 'desktop'] as const) {
     // Dismiss is the one button that drops an item, with no message
     await pane.press({ key: 'dismiss3' })
     expect(await pane.find({ key: 'answer3' })).toBeUndefined()
-
-    // turn 3: an ask without a track call: the backstop adds #5, and the new batch clears turn 1's,
-    // the discussed and drafted ones included
-    await turn('Can you run setup.py?')
-    expect(haikuCalls).toBe(1)
-    const open = (await $.tool.call({ tool: 'mcp__tether__track' } as never)).text
-    expect(open).not.toContain('Should I delete')
-    expect(open).not.toContain('Delete the remote branch?')
-    for (const key of ['approve1', 'pick0-2', 'good4']) expect(await pane.find({ key })).toBeUndefined()
-    for (const key of ['done5', 'cancel5', 'discuss5']) expect(await pane.find({ key })).toBeDefined()
-
-    await pane.press({ key: 'cancel5' })
     expect(filled).toEqual([
       'Let\'s discuss "Delete the remote branch?": ',
       'Denied: Delete the remote branch?\n\n',
       'For "Which board?", I pick: Platform\n\n',
       'Answer to "What is the board id?": ',
-      'Not doing this, plan around it: Run setup.py\n\n',
     ])
     expect(sent).toEqual([])
     expect(toasts).not.toContain('Sent')
 
-    // turn 4: the backstop tries to re-add the still-open to-do in other words; adding nothing clears nothing
-    await turn('Did setup.py work?')
+    // turn 2: the person sends something; every ask clears. No ask in the reply, no track, no Haiku.
+    await turn('I committed the files.', undefined, 'Commit it')
+    expect(haikuCalls).toBe(0)
+    expect(await track()).toBe('No action items.')
+    for (const key of ['approve1', 'pick0-2', 'good4']) expect(await pane.find({ key })).toBeUndefined()
+
+    // turn 3: an ask without a track call: the backstop adds #5 and drops its own rewording
+    await turn('Can you run setup.py?', undefined, 'What next?')
+    expect(haikuCalls).toBe(1)
+    expect(await track()).toBe('Action items:\n#5 [todo] Run setup.py')
+    for (const key of ['done5', 'cancel5', 'discuss5']) expect(await pane.find({ key })).toBeDefined()
+
+    // turn 4: the reply asks again after a send, so it is back, once
+    await turn('Did setup.py work?', undefined, 'Not yet')
     expect(haikuCalls).toBe(2)
     expect((await pane.findAll({ type: 'Text', text: /setup\.py/ })).length).toBe(1)
-    expect(await pane.find({ key: 'done5' })).toBeDefined()
+    expect(await pane.find({ key: 'done6' })).toBeDefined()
     await pane.unmount()
   })
 }
 
-test('a new batch replaces older turns; one turn keeps all its own; a turn that adds nothing clears nothing', async ($, on) => {
+test('a sent message empties the list; a turn with no send keeps it; resolve drops one', async ($, on) => {
   mock.clock(on)
   on('session.usage', () => ({ value: { context: { window: 1_000_000 } } }) as never)
   on('session.messages', () => ({ value: [] }) as never)
   on('ui.toast', () => ({ value: {} }) as never)
+  on('prompt.fill', ($, e) => ({ isFilled: true, text: e.text, cursor: e.text.length }) as never)
+  on('prompt.submit', ($, e) => ({ text: e.text }) as never)
   on('turn.start', ($, e) => ({ turnId: e.turnId }) as never)
   on('turn.complete', () => ({ text: '' }) as never)
   const track = async (add: { kind: string; text: string }[] = [], resolve: number[] = []) =>
     (await $.tool.call({ tool: 'mcp__tether__track', add, resolve } as never)).text
+  const submit = (text: string) => $.prompt.submit({ text, origin: { kind: 'composer' } } as never)
   const turn = async (id: string, during: () => Promise<unknown>) => {
     await $.turn.start({ text: 'hi', turnId: id } as never)
     await during()
@@ -158,43 +159,16 @@ test('a new batch replaces older turns; one turn keeps all its own; a turn that 
   })
   expect(await track()).toBe('Action items:\n#1 [todo] Run setup.py\n#2 [question] What is the board id?')
 
-  await turn('b', () => track([], [2]))
-  expect(await track()).toBe('Action items:\n#1 [todo] Run setup.py')
+  // a turn nobody sent (a background task finishing) adds to the list rather than clearing it
+  await turn('b', () => track([{ kind: 'decision', text: 'Push the branch?' }], [2]))
+  expect(await track()).toBe('Action items:\n#1 [todo] Run setup.py\n#3 [decision] Push the branch?')
 
-  await turn('c', () => track([{ kind: 'decision', text: 'Push the branch?' }]))
-  expect(await track()).toBe('Action items:\n#3 [decision] Push the branch?')
-})
-
-test('a button reply clears its ask once sent; Discuss and an unsent draft keep theirs', async ($, on) => {
-  mock.clock(on)
-  on('session.usage', () => ({ value: { context: { window: 1_000_000 } } }) as never)
-  on('session.messages', () => ({ value: [] }) as never)
-  on('ui.toast', () => ({ value: {} }) as never)
-  on('prompt.fill', ($, e) => ({ isFilled: true, text: e.text, cursor: e.text.length }) as never)
-  on('prompt.submit', ($, e) => ({ text: e.text }) as never)
-  await $.tool.call({
-    tool: 'mcp__tether__track',
-    add: [
-      { kind: 'decision', text: 'Delete the remote branch?' },
-      { kind: 'question', text: 'What is the board id?' },
-      { kind: 'todo', text: 'Run setup.py' },
-    ],
-  } as never)
+  // a drafted reply, a Discuss, or something unrelated: any send empties the list
   const pane = await $.ui.mount({ plugin: 'tether', surface: 'desktop', component: 'Pane', requestId: 'tether', props: { bodyColumns: 90 } as never })
-  const submit = (text: string) => $.prompt.submit({ text, origin: { kind: 'composer' } } as never)
-
-  await pane.press({ key: 'approve1' })
-  expect(await pane.find({ type: 'Text', text: /Clears when you send it/ })).toBeDefined()
-  await submit('Approved: Delete the remote branch?')
-  expect(await pane.find({ key: 'approve1' })).toBeUndefined()
-
-  await pane.press({ key: 'answer2' })
-  await submit('Answer to "What is the board id?": 42') // the person typed after the draft
-  expect(await pane.find({ key: 'answer2' })).toBeUndefined()
-
   await pane.press({ key: 'discuss3' })
-  await pane.press({ key: 'done3' })
-  await submit('never mind, something else') // the draft was deleted before sending
-  expect(await pane.find({ key: 'done3' })).toBeDefined()
+  await submit('never mind, something else')
+  expect(await pane.find({ key: 'done1' })).toBeUndefined()
+  expect(await pane.find({ key: 'approve3' })).toBeUndefined()
+  expect(await track()).toBe('No action items.')
   await pane.unmount()
 })
