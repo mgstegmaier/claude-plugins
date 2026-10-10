@@ -121,9 +121,22 @@ When you report on a task you completed, write these in order and nothing else:
 
 1. What changed. One line per file, with the path.
 2. What you did not do, and why.
-3. What the reader needs to decide.
+3. What the reader needs to decide, written as the "Needs you" callout below.
 
 Skip introductions, recaps, and reassurance. Don't restate the task. Don't explain code the reader can see in the diff. Under 150 words unless asked for more. Adapted from Nathan Renard's "My AI output playbook" (2026-09-05).
+
+## When a reply needs something from the reader
+
+In chat, when a reply waits on the reader for a decision, an answer, a check, or an action only they can take, end the reply with a blockquote that names each thing. Nothing comes after it.
+
+> **Needs you:** Ship 0.9.2 now, or wait for the Windows test?
+
+- One line per item, each one standalone: name the exact action or the options, so the line makes sense without the rest of the reply.
+- Put every open item in the callout, including one you asked in an earlier reply that the reader hasn't answered yet. The callout is the only list, so an item left out of it is dropped.
+- A reply that needs nothing from the reader ends without a callout. Don't add one for a rhetorical question or for work you'll do yourself.
+- Use a plain blockquote. It renders in the terminal, the desktop app, and claude.ai, where GitHub-style alert boxes don't always.
+
+The callout lives in the reply because a list stored anywhere else goes stale once the conversation moves on.
 
 ## Change notices
 

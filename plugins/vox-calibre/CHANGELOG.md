@@ -3,6 +3,13 @@
 This log covers both `vox-calibre` (the Claude Code output style) and `vox-calibre-chat` (the
 claude.ai skill). They share one set of rules and always release with the same version number.
 
+## 0.3.0 (2026-10-09)
+
+- New section, "When a reply needs something from the reader": in chat, a reply that waits on the
+  reader ends with a `> **Needs you:**` blockquote, one standalone line per open item, including
+  earlier asks still unanswered. A reply that needs nothing has no callout.
+- "Reporting finished work" now puts what the reader needs to decide in that callout.
+
 ## 0.2.1 (2026-10-09)
 
 - The output style's Grounding line now credits [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop)
