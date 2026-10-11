@@ -10,7 +10,8 @@ export type Assumption = {
 }
 
 export type AskKind = 'decision' | 'choice' | 'todo' | 'question' | 'review'
-export type Ask = { id: number; kind: AskKind; text: string; options?: string[] }
+// `at` is when it was added ($.clock.now()); the needs-you section shows its age.
+export type Ask = { id: number; kind: AskKind; text: string; options?: string[]; at?: number }
 
 export type Undone = {
   id: number
