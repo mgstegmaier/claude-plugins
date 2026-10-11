@@ -4,7 +4,7 @@ const mount = ($: Parameters<Parameters<typeof test>[1]>[0], requestId: string) 
   $.ui.mount({ plugin: 'tether', surface: 'desktop', component: 'Pane', requestId, props: { bodyColumns: 90 } as never })
 const NAMES: Record<string, string> = {
   'working on': 'focus', context: 'context', assumptions: 'assumptions', 'loose ends': 'undone',
-  'action items': 'asks', subagents: 'agents', 'cost and tokens': 'cost', changes: 'changes',
+  decisions: 'asks', 'needs you': 'needs', subagents: 'agents', 'cost and tokens': 'cost', changes: 'changes',
 }
 // The main pane's sections in drawn order, read from their fold buttons ("context ▸").
 const labels = async (pane: Awaited<ReturnType<typeof mount>>) =>
@@ -21,14 +21,14 @@ test('settings hide a section and move another, the main pane follows, and the c
 
   await settings.press({ key: 'set-show-context' })
   await settings.press({ key: 'set-up-changes' })
-  expect(await labels(main)).toEqual(['focus', 'assumptions', 'undone', 'asks', 'agents', 'changes', 'cost'])
+  expect(await labels(main)).toEqual(['focus', 'assumptions', 'undone', 'asks', 'needs', 'agents', 'changes', 'cost'])
   expect(saved.at(-1)).toEqual({
-    order: ['focus', 'context', 'assumptions', 'undone', 'asks', 'agents', 'changes', 'cost'],
+    order: ['focus', 'context', 'assumptions', 'undone', 'asks', 'needs', 'agents', 'changes', 'cost'],
     hidden: ['context'],
   })
 
   await settings.press({ key: 'set-reset' })
-  expect(await labels(main)).toEqual(['focus', 'context', 'assumptions', 'undone', 'asks', 'agents', 'cost', 'changes'])
+  expect(await labels(main)).toEqual(['focus', 'context', 'assumptions', 'undone', 'asks', 'needs', 'agents', 'cost', 'changes'])
   await settings.unmount()
   await main.unmount()
 })
@@ -43,6 +43,20 @@ test('a saved layout loads at session start; unknown ids drop and new sections j
   await $.session.start({ cwd: '/tmp' } as never)
 
   const main = await mount($, 'tether')
-  expect(await labels(main)).toEqual(['cost', 'focus', 'context', 'assumptions', 'undone', 'asks', 'changes'])
+  expect(await labels(main)).toEqual(['cost', 'focus', 'context', 'assumptions', 'undone', 'asks', 'needs', 'changes'])
+  await main.unmount()
+})
+
+test('a saved layout with asks but no needs gets needs right after asks', async ($, on) => {
+  mock.clock(on)
+  mock.store(on, { layout: { order: ['focus', 'asks', 'cost', 'changes'], hidden: [] } })
+  on('session.start', ($, e) => e as never)
+  on('command.register', () => ({ value: {} }) as never)
+  on('tool.register', () => ({ value: {} }) as never)
+  on('ui.open', () => ({ value: { isPlaced: true } }) as never)
+  await $.session.start({ cwd: '/tmp' } as never)
+
+  const main = await mount($, 'tether')
+  expect(await labels(main)).toEqual(['focus', 'asks', 'needs', 'cost', 'changes', 'context', 'assumptions', 'undone', 'agents'])
   await main.unmount()
 })

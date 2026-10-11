@@ -5,7 +5,7 @@ import type { Ask, AskKind } from '../types'
 export const TRACK = 'mcp__tether__track'
 export const KINDS: AskKind[] = ['decision', 'choice', 'question', 'review', 'todo']
 
-export const GUIDANCE = `Action items: the user keeps a panel of everything you are waiting on them for. Whenever your reply asks the user to decide, choose, answer, check something, or do something themselves, call ${TRACK} in the same turn with "add" (kinds: decision = yes/no before you act, naming the exact action; choice = 2-4 short "options"; question = information only they have; review = look at something and report back; todo = they act outside the chat). One standalone line per item that makes sense without the transcript. The panel empties every time the user sends a message, so each reply adds everything it still waits on, including an earlier ask that is still unanswered. When your work in this turn makes an item you added moot, pass its id in "resolve". The tool returns the open list with ids.`
+export const GUIDANCE = `Action items: the user keeps a panel of everything you are waiting on them for, in two sections. Whenever your reply asks the user to decide, choose, answer, check something, or do something themselves, call ${TRACK} in the same turn with "add" (kinds: decision = yes/no before you act, naming the exact action; choice = 2-4 short "options"; question = information only they have; review = look at something and report back; todo = they act outside the chat). One standalone line per item that makes sense without the transcript. Decisions (decision, choice, question, review) empty every time the user sends a message, so each reply adds everything it still waits on, including an earlier ask that is still unanswered. Needs you (todo) stays until the user marks it done or clears it, for the rest of the session, so add each todo ONCE when you first ask and do not re-add it in later replies. When your work in this turn makes an item you added moot, pass its id in "resolve". The tool returns the open list with ids.`
 
 export const SCHEMA = {
   type: 'object',
@@ -33,11 +33,11 @@ Kinds:
 - question: needs information only the user has, answered in words.
 - review: the user should look at something (a page, a pane, a PR) and report whether it is right.
 - todo: something the user must do themselves outside the chat (run a command, change an admin setting, message someone).
-add: each such thing in the reply. One standalone line each that makes sense without the transcript. Skip anything already on the open list, anything the user's message already answered, rhetorical questions, and things the assistant will do itself.
+add: each such thing in the reply. One standalone line each that makes sense without the transcript. Skip anything already on the open list (todos stay on it until the user clears them, so never re-add one), anything the user's message already answered, rhetorical questions, and things the assistant will do itself.
 resolve: ids of open items the user's message answered or the reply settled or made moot.
 Nothing to change: {"add":[],"resolve":[]}.`
 
-// What each button drafts into the prompt box. Sending any message clears the list, so none of these needs tracking.
+// What each button drafts into the prompt box. Sending any message clears the decisions, and a sent Done or cancel draft clears its todo (register.tsx matches them by containment), so none of these needs tracking.
 // rekall/graph-memory/recall_hook.py BUTTON_PROMPT matches these shapes to skip recall; change both together.
 const quote = (a: Ask) => `"${a.text}"`
 export const SEND = {
@@ -74,7 +74,7 @@ export function parseChange(reply: string): Change {
 // ponytail: word overlap, not meaning. 0.8 calibrated 2026-10-07 on real asks: rewordings of one ask scored 1.0,
 // two different "delete the remote branch X?" asks scored 0.67. Upgrade path: an embedding check if rewordings slip through.
 const STOP = new Set(['the', 'and', 'for', 'from', 'with', 'this', 'that', 'instead', 'should', 'into', 'your', 'you', 'its', 'are', 'was', 'now', 'run', 'runs'])
-const words = (t: string) => new Set(t.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !STOP.has(w)))
+const words = (t: string) => new Set(t.toLowerCase().split(/[^a-z0-9]+/).filter(w => (w.length >= 3 || /^\d+$/.test(w)) && !STOP.has(w)))
 export function isDuplicate(text: string, others: string[]) {
   const a = words(text)
   return others.some(o => {

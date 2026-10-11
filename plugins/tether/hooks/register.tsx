@@ -203,7 +203,7 @@ const isFocusCustom = atom({ plugin: 'tether', key: 'isFocusCustom' } as const, 
 // The main pane's sections in their default order, with the names Settings shows.
 const SECTIONS: [id: string, label: string][] = [
   ['focus', 'working on'], ['context', 'context'], ['assumptions', 'assumptions'], ['undone', 'loose ends'],
-  ['asks', 'action items'], ['agents', 'subagents'], ['cost', 'cost and tokens'], ['changes', 'changes'],
+  ['asks', 'decisions'], ['needs', 'needs you'], ['agents', 'subagents'], ['cost', 'cost and tokens'], ['changes', 'changes'],
 ]
 const SETTINGS = 'tether-settings'
 const DEFAULT_LAYOUT: Layout = { order: SECTIONS.map(([id]) => id), hidden: [] }
@@ -214,13 +214,16 @@ const layout = atom({ plugin: 'tether', key: 'layout' } as const, DEFAULT_LAYOUT
 const ordered = (l: Layout): string[] => {
   const known = SECTIONS.map(([id]) => id)
   const kept = l.order.filter(id => known.includes(id))
+  // `needs` was added after `asks` shipped: a layout that has one but not the other puts it right after.
+  if (kept.includes('asks') && !kept.includes('needs')) kept.splice(kept.indexOf('asks') + 1, 0, 'needs')
   return [...kept, ...known.filter(id => !kept.includes(id))]
 }
 /** The sections to draw, in order. */
 const arrange = (l: Layout): string[] => ordered(l).filter(id => !l.hidden.includes(id))
 const isLayout = (v: unknown): v is Layout =>
   typeof v === 'object' && v !== null && Array.isArray((v as Layout).order) && Array.isArray((v as Layout).hidden)
-// Open asks: the list and the next id. The list holds only what Claude asked since the person last sent a message.
+// Open asks: the list and the next id. Decisions (everything but a todo) last until the person sends a message;
+// todos (needs you) last until Done, Clear or the session's end.
 const asks = atom({ plugin: 'tether', key: 'asks' } as const, [])
 const nextAsk = atom({ plugin: 'tether', key: 'nextAsk' } as const, 1)
 
@@ -370,12 +373,17 @@ const followTitle = async ($: EngineInterface, title: string | undefined): Promi
 
 const applyAsks = async ($: EngineInterface, change: Change): Promise<void> => {
   const added: Ask[] = []
+  const gone = new Set(change.resolve)
+  // A todo outlives messages, so a re-add of an open one (reworded or not) is dropped here.
+  const todos = (await read($, asks)).filter(a => a.kind === 'todo' && !gone.has(a.id)).map(a => a.text)
+  const at = await $.clock.now()
   for (const item of change.add) {
+    if (item.kind === 'todo' && isDuplicate(item.text, todos)) continue
+    if (item.kind === 'todo') todos.push(item.text)
     let id = 0
     await update($, nextAsk, n => ((id = n), n + 1))
-    added.push({ ...item, id })
+    added.push({ ...item, id, at })
   }
-  const gone = new Set(change.resolve)
   await update($, asks, l => [...l.filter(a => !gone.has(a.id)), ...added])
   if (added.length) {
     $.ui.toast(`Waiting on you: ${(added[0]?.text ?? '').slice(0, 80)}`)
@@ -460,7 +468,7 @@ export const register: Register = on => {
 
     await $.tool.register({
       name: 'track',
-      description: "Add or resolve items in the user's Action items panel: what you are waiting on the user for.",
+      description: "Add or resolve items in the user's panel of what you are waiting on them for: Decisions (decision, choice, question, review; they empty on every user message) and Needs you (todo; they stay until the user marks them done or clears them).",
       inputSchema: SCHEMA,
     })
 
@@ -516,14 +524,17 @@ export const register: Register = on => {
   })
 
   // What the person asked for, kept for the check at the end of the turn.
-  // Sending anything also empties the action items: answered, ignored or moved on from, the
+  // Sending anything also empties the decisions: answered, ignored or moved on from, the
   // list mirrors only the reply after this one, so it can't go stale. Claude re-asks what still matters.
+  // Todos stay, unless the message carries that todo's Done or cancel draft.
   on('prompt.submit', async ($, e, next) => {
     const kind: string = e.origin.kind
 
     if (kind === 'composer' || kind === 'bridge' || kind === 'sdk') {
       await update($, stats, raw => ({ ...whole(raw), lastPrompt: e.text.slice(0, 4000) }))
-      await update($, asks, () => [])
+      // A draft only counts when its line ends there, so "Done: Email Dan" doesn't match "Done: Email Daniel".
+      const sent = (draft: string) => `${e.text}\n`.includes(`${draft}\n`)
+      await update($, asks, l => l.filter(a => a.kind === 'todo' && !sent(SEND.done(a)) && !sent(SEND.cancel(a))))
     }
 
     return next(e)
@@ -578,8 +589,10 @@ export const register: Register = on => {
       isTracked = true
       // The tool's arguments sit on e itself, beside tool and tool_use_id.
       await applyAsks($, parseChange(JSON.stringify(e)))
-      const open = (await read($, asks)).map(a => `#${a.id} [${a.kind}] ${a.text}`)
-      const text = open.length ? `Action items:\n${open.join('\n')}` : 'No action items.'
+      const all = await read($, asks)
+      const list = (todo: boolean) => all.filter(a => (a.kind === 'todo') === todo).map(a => `#${a.id} [${a.kind}] ${a.text}`)
+      const [decisions, needs] = [list(false), list(true)]
+      const text = [decisions.length ? `Decisions:\n${decisions.join('\n')}` : '', needs.length ? `Needs you:\n${needs.join('\n')}` : ''].filter(Boolean).join('\n\n') || 'No action items.'
 
       return { result: text, text } as never
     }
@@ -782,7 +795,11 @@ export const register: Register = on => {
     const Svg = e.surface === 'desktop' ? $.ui.resolve(e).Svg : undefined
     const s = whole(await read($, stats))
     const folded = await read($, collapsed)
-    const waiting = await read($, asks)
+    const everyAsk = await read($, asks)
+    const waiting = everyAsk.filter(a => a.kind !== 'todo')
+    const needed = everyAsk.filter(a => a.kind === 'todo')
+    // ponytail: ages move when the pane redraws, not on a timer; a todo's age is minutes, not seconds
+    const now = needed.length > 0 ? await $.clock.now() : 0
     const inner = Math.max(16, e.props.bodyColumns - 4)
     const viewedId = e.props.view?.agentId
 
@@ -915,9 +932,14 @@ export const register: Register = on => {
     // Open asks: each button drafts its reply into the prompt box, and sending any message
     // clears the list. A finished reply ends in a blank line, so several pressed in a row
     // stack as paragraphs. Discuss and Answer leave the cursor after their colon for typing.
-    // Dismiss and Clear all drop asks unsent.
+    // Dismiss, Clear and Clear all drop asks unsent; each Clear all empties only its own section.
     const dismissAsk = (a: Ask) => update($, asks, l => l.filter(x => x.id !== a.id))
-    const clearAsks = () => update($, asks, () => [])
+    const clearAsks = () => update($, asks, l => l.filter(a => a.kind === 'todo'))
+    const clearNeeds = () => update($, asks, l => l.filter(a => a.kind !== 'todo'))
+    const ago = (at: number) => {
+      const m = Math.max(0, Math.floor((now - at) / MINUTE))
+      return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.floor(m / 60)}h ago` : `${Math.floor(m / 1440)}d ago`
+    }
     const askButtons = (a: Ask) => {
       const b = (name: string, label: string, text: string) => (
         <Button key={`${name}${a.id}`} label={label} onPress={() => draft(text.endsWith(': ') ? text : `${text}\n\n`)} />
@@ -933,7 +955,7 @@ export const register: Register = on => {
         case 'review':
           return [b('good', 'Looks good', SEND.good(a)), discuss]
         case 'todo':
-          return [b('done', 'Done', SEND.done(a)), b('cancel', 'Cancel', SEND.cancel(a)), discuss]
+          return [b('done', 'Done', SEND.done(a)), discuss, <Button key={`clear${a.id}`} label="Clear" onPress={() => dismissAsk(a)} />]
       }
     }
 
@@ -1035,7 +1057,7 @@ export const register: Register = on => {
           )),
           ...(todo.length > 0 ? [<Button key="undone-clear" label="x Clear all" hotkey="x" onPress={() => clear()} />] : []),
         ]),
-      asks: section('asks', 'action items', waiting.length === 0 ? '' : `${waiting.length} waiting`, waiting.length === 0
+      asks: section('asks', 'decisions', waiting.length === 0 ? '' : `${waiting.length} waiting`, waiting.length === 0
           ? [<Text dimColor>Nothing waiting on you.</Text>]
           : [
               ...waiting.map((a, i) => (
@@ -1045,6 +1067,18 @@ export const register: Register = on => {
                 </Box>
               )),
               <Box key="asks-clear-row" marginTop={1}><Button key="asks-clear" label="Clear all" onPress={clearAsks} /></Box>,
+            ]),
+      needs: section('needs', 'needs you', needed.length === 0 ? '' : `${needed.length} open`, needed.length === 0
+          ? [<Text dimColor>Nothing for you to do.</Text>]
+          : [
+              ...needed.map((a, i) => (
+                <Box key={`need-${a.id}`} flexDirection="column" marginTop={i === 0 ? 0 : 1}>
+                  <Text wrap="wrap">{a.text}</Text>
+                  {a.at !== undefined && <Text dimColor>{`added ${ago(a.at)}`}</Text>}
+                  <Box columnGap={1} rowGap={1} flexWrap="wrap">{askButtons(a)}</Box>
+                </Box>
+              )),
+              <Box key="needs-clear-row" marginTop={1}><Button key="needs-clear" label="Clear all" onPress={clearNeeds} /></Box>,
             ]),
       agents: section('agents', 'subagents', `${s.agents.filter(row => isRunning(row, s.now)).length} running`, [
           ...(s.agents.length === 0 ? [<Text dimColor>None started yet</Text>] : []),

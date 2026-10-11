@@ -123,14 +123,14 @@ for (const surface of ['terminal', 'desktop'] as const) {
     // turn 3: an ask without a track call: the backstop adds #5 and drops its own rewording
     await turn('Can you run setup.py?', undefined, 'What next?')
     expect(haikuCalls).toBe(1)
-    expect(await track()).toBe('Action items:\n#5 [todo] Run setup.py')
-    for (const key of ['done5', 'cancel5', 'discuss5']) expect(await pane.find({ key })).toBeDefined()
+    expect(await track()).toBe('Needs you:\n#5 [todo] Run setup.py')
+    for (const key of ['done5', 'clear5', 'discuss5']) expect(await pane.find({ key })).toBeDefined()
 
-    // turn 4: the reply asks again after a send, so it is back, once
+    // turn 4: the reply asks again after a send; the todo survived it, so the re-add is dropped and it stays once
     await turn('Did setup.py work?', undefined, 'Not yet')
     expect(haikuCalls).toBe(2)
     expect((await pane.findAll({ type: 'Text', text: /setup\.py/ })).length).toBe(1)
-    expect(await pane.find({ key: 'done6' })).toBeDefined()
+    expect(await pane.find({ key: 'done5' })).toBeDefined()
     await pane.unmount()
   })
 }
@@ -157,18 +157,24 @@ test('a sent message empties the list; a turn with no send keeps it; resolve dro
     await track([{ kind: 'todo', text: 'Run setup.py' }])
     await track([{ kind: 'question', text: 'What is the board id?' }])
   })
-  expect(await track()).toBe('Action items:\n#1 [todo] Run setup.py\n#2 [question] What is the board id?')
+  expect(await track()).toBe('Decisions:\n#2 [question] What is the board id?\n\nNeeds you:\n#1 [todo] Run setup.py')
 
   // a turn nobody sent (a background task finishing) adds to the list rather than clearing it
   await turn('b', () => track([{ kind: 'decision', text: 'Push the branch?' }], [2]))
-  expect(await track()).toBe('Action items:\n#1 [todo] Run setup.py\n#3 [decision] Push the branch?')
+  expect(await track()).toBe('Decisions:\n#3 [decision] Push the branch?\n\nNeeds you:\n#1 [todo] Run setup.py')
 
   // a drafted reply, a Discuss, or something unrelated: any send empties the list
   const pane = await $.ui.mount({ plugin: 'tether', surface: 'desktop', component: 'Pane', requestId: 'tether', props: { bodyColumns: 90 } as never })
   await pane.press({ key: 'discuss3' })
   await submit('never mind, something else')
-  expect(await pane.find({ key: 'done1' })).toBeUndefined()
+  expect(await pane.find({ key: 'done1' })).toBeDefined() // a todo survives a send
   expect(await pane.find({ key: 'approve3' })).toBeUndefined()
-  expect(await track()).toBe('No action items.')
+  expect(await track()).toBe('Needs you:\n#1 [todo] Run setup.py')
   await pane.unmount()
+})
+
+test('isDuplicate counts numbers, so asks about different PRs stay apart', () => {
+  expect(isDuplicate('Merge PR 13', ['Merge PR 12'])).toBe(false)
+  expect(isDuplicate('Approve PR #42 on GitHub', ['Approve PR #41 on GitHub'])).toBe(false)
+  expect(isDuplicate('Merge PR 12', ['Merge PR 12'])).toBe(true)
 })
