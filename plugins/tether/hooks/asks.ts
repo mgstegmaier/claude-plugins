@@ -5,7 +5,7 @@ import type { Ask, AskKind } from '../types'
 export const TRACK = 'mcp__tether__track'
 export const KINDS: AskKind[] = ['decision', 'choice', 'question', 'review', 'todo']
 
-export const GUIDANCE = `Action items: the user keeps a panel of everything you are waiting on them for, in two sections. Whenever your reply asks the user to decide, choose, answer, check something, or do something themselves, call ${TRACK} in the same turn with "add" (kinds: decision = yes/no before you act, naming the exact action; choice = 2-4 short "options"; question = information only they have; review = look at something and report back; todo = they act outside the chat). One standalone line per item that makes sense without the transcript. Decisions (decision, choice, question, review) empty every time the user sends a message, so each reply adds everything it still waits on, including an earlier ask that is still unanswered. Needs you (todo) stays until the user marks it done or clears it, for the rest of the session, so add each todo ONCE when you first ask and do not re-add it in later replies. When your work in this turn makes an item you added moot, pass its id in "resolve". The tool returns the open list with ids.`
+export const GUIDANCE = `Action items: the user keeps a panel of everything you are waiting on them for, in two sections. Whenever your reply asks the user to decide, choose, answer, check something, or do something themselves, call ${TRACK} in the same turn with "add" (kinds: decision = yes/no on one exact action before you act; choice = 2-4 short "options", and any "X, or Y?" ask is a choice with X and Y as options even when your reply labels it "Decision:"; question = information only they have; review = look at something and report back; todo = they act outside the chat). One standalone line per item that makes sense without the transcript. Decisions (decision, choice, question, review) empty every time the user sends a message, so each reply adds everything it still waits on, including an earlier ask that is still unanswered. Needs you (todo) stays until the user marks it done or clears it, for the rest of the session, so add each todo ONCE when you first ask and do not re-add it in later replies. When your work in this turn makes an item you added moot, pass its id in "resolve". The tool returns the open list with ids.`
 
 export const SCHEMA = {
   type: 'object',
@@ -29,7 +29,7 @@ export const SCHEMA = {
 export const BACKSTOP_SYSTEM = `You track what an AI coding assistant is waiting on its user for. You get the open list, the user's last message, and the assistant's reply. Answer with JSON only: {"add":[{"kind":"...","text":"...","options":["..."]}],"resolve":[ids]}.
 Kinds:
 - decision: a yes/no the assistant wants before acting ("Delete the remote branch?"). Text names the exact action.
-- choice: pick one of 2-4 named options; put them in "options", short labels.
+- choice: pick one of 2-4 named options; put them in "options", short labels. An either/or ask ("Open a PR now, or keep it local?") is a choice, never a decision, even when the reply labels it "Decision:".
 - question: needs information only the user has, answered in words.
 - review: the user should look at something (a page, a pane, a PR) and report whether it is right.
 - todo: something the user must do themselves outside the chat (run a command, change an admin setting, message someone).
