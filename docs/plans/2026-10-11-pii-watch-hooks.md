@@ -3,6 +3,16 @@
 Status: planned, not built. Decided with Mike Stegmaier on 2026-10-11 in a design interview.
 Monday ticket: [Build PII warning hooks for Claude Code](https://upland-bunch.monday.com/boards/18406890255/pulses/13259576768) (Data Engineering Requests, AI Governance).
 
+## Resume here
+
+When this work thaws, build on the existing branch. Don't start a new one.
+
+- Repo: `mgstegmaier/claude-plugins` (local checkout `~/github_repos/personal_projects/claude-plugins`).
+- Branch: `claude/pii-detection-mod-90f41c`. It holds this plan and nothing else yet. Check it out, or open a worktree on it, then run `git pull` first.
+- Bind the session to the Monday ticket above with `monday_ticket.py bind`, so progress logs land on it.
+- First step: build order step 1, the Laya test-set script. Laya is already installed in `~/.venvs/laya/`, and its model finished downloading on 2026-10-11.
+- Open the PR from this branch once there's code, and log it on the ticket.
+
 ## What this is for
 
 Claude Code sends whatever a tool returns, and whatever a user pastes, to the model. For a data engineer that includes query results from Snowflake tables that hold policyholder and claimant PII. This plugin checks that data on the user's own machine first and, when it finds possible PII, asks the user whether to send it.
