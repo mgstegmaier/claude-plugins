@@ -4,6 +4,27 @@ A session dashboard for Claude Code: a `/tether` pane of folding sections for wh
 
 Adapted from ClariSortAi's Terminal Desk (MIT, see `LICENSE`).
 
+## Why use it
+
+In a long session, the things you need to act on scroll past: a question Claude asked three answers ago, a command only you can run, a guess Claude made without asking. Tether keeps them in one pane next to the chat, so you can see what Claude is doing and what it's waiting on without scrolling back through the transcript. It works in Claude Code in a terminal and in the Code tab of the Claude desktop app.
+
+The pane answers two questions. The first is what Claude needs from you:
+
+- **Decisions** lists every question Claude is waiting on you to answer, with buttons such as Approve, Deny and Discuss.
+- **Needs you** lists what Claude can't do itself, like running a command on another machine, changing an admin setting, or messaging someone.
+- **Assumptions** shows the calls Claude made on its own, so you can catch a wrong guess before Claude builds on it.
+- **Loose ends** lists work Claude put off, written as actions you can tell it to do now.
+
+The second is what the session is doing:
+
+- **Context** shows how much of the context window is used, so you know when to wrap up or start fresh.
+- **Cost and tokens** shows dollars spent, tokens read and written, and how much came from cache.
+- **Subagents** shows what's running in the background, on which model, and how long it took.
+- **Changes** lists what reached outside your machine, the files Claude edited, and whether anything checked them after the last edit.
+- **Working on** is a one-line note about the session, so you remember what it was for when you come back to it.
+
+No button sends anything. Each one drafts a reply into the prompt box, and nothing goes to Claude until you press Enter. [The pane](#the-pane) below describes every section in full.
+
 ## Getting started
 
 1. In the Claude desktop app's Code tab or in a terminal session, run `/plugin marketplace add mgstegmaier/claude-plugins`. You only need this once.
@@ -54,7 +75,7 @@ Claude adds asks itself through a tool, `track`, and re-adds any earlier decisio
 
 The pane is drawn locally from numbers Claude Code already keeps. Drawing them makes no model calls and no network calls.
 
-The assumptions and Open asks sections are the parts that cost tokens. Each adds a short instruction to the system prompt (roughly 200 tokens each) and registers one tool (`note_assumption` and `track`). For assumptions, `note_assumption` is the tool that Claude calls when it makes a judgment call you did not state. Each logged assumption is a small tool call, and when Claude logs one as a separate step, that is one extra request at the cached rate. On a large conversation that can be several cents each.
+Assumptions and the asks behind Decisions and Needs you are the parts that cost tokens. Each adds a short instruction to the system prompt (roughly 200 tokens each) and registers one tool (`note_assumption` and `track`). For assumptions, `note_assumption` is the tool that Claude calls when it makes a judgment call you did not state. Each logged assumption is a small tool call, and when Claude logs one as a separate step, that is one extra request at the cached rate. On a large conversation that can be several cents each.
 
 The Loose ends section's file scan is local and free. Its second-model check is one small request to Claude Haiku 4.5 after each answer that defers something, follows five or more tool calls, or ends with a loose end still open, sent with your request and the last part of Claude's answer. `/tether check off` stops it, and with it every loose end that comes from Claude's answers.
 
