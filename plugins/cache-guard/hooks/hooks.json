@@ -1,0 +1,6 @@
+{
+  "description": "cache-guard (Mod): session.start, classic.SessionStart, prompt.submit, turn.step, turn.complete, session.compact.",
+  "modules": [
+    "./register.ts"
+  ]
+}
