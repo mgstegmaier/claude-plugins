@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "doc-standards",
+  "description": "Writing standards for documents, in four skills that share one house language: technical-doc-writer for runbooks, READMEs and architecture docs; primer-writer for plain-language primers of long engineering docs; executive-brief-writer for charters, decision briefs, proposals and readouts; adr-writer for architecture decision records with a plain-language summary on top.",
+  "version": "1.1.0",
+  "author": {
+    "name": "Michael Stegmaier"
+  },
+  "repository": "https://github.com/mgstegmaier/claude-plugins",
+  "keywords": [
+    "documentation",
+    "runbook",
+    "readme",
+    "primer",
+    "charter",
+    "brief",
+    "executive",
+    "writing",
+    "adr",
+    "decision-record"
+  ]
+}

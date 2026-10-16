@@ -18,6 +18,7 @@ This repo is a Claude Code plugin marketplace named `mgstegmaier`. Each plugin l
 | [`cache-guard`](plugins/cache-guard/) | A mod that asks before a send re-writes a cold prompt cache: a dialog shows the estimated cost with Proceed and Start new session buttons. Adapted from Karan Bansal's cache-tax, without keepwarm. |
 | [`vox-calibre`](plugins/vox-calibre/) | Vox Calibre, a focused, plain-language writing style with a human voice, as a Claude Code output style for every reply. |
 | [`vox-calibre-chat`](plugins/vox-calibre-chat/) | The same Vox Calibre rules as a skill for claude.ai chat, which has no output styles. |
+| [`doc-standards`](plugins/doc-standards/) | Four writing skills that share one house language: runbooks and READMEs (`technical-doc-writer`), plain-language primers of long engineering docs (`primer-writer`), charters and decision briefs (`executive-brief-writer`), and architecture decision records (`adr-writer`). |
 
 `context-band` and `tether` need Claude Code 2.1.289 or later. Check with `claude --version`.
 

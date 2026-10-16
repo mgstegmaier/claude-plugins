@@ -82,6 +82,26 @@
         "prompt-cache",
         "cost"
       ]
+    },
+    {
+      "name": "doc-standards",
+      "displayName": "Document standards",
+      "description": "Writing standards for documents, in four skills that share one house language. technical-doc-writer writes runbooks, READMEs and architecture docs that a non-engineer can read and an on-call engineer can act on. primer-writer turns someone else's long engineering doc into a short plain-language primer that traces every claim to its source. executive-brief-writer writes phase-gate charters, decision briefs, proposals and readouts where every figure carries its source and every risk its handling. adr-writer writes and retrofits architecture decision records: YAML front matter, a summary of the problem, options, recommendation and decision needed, then the engineering detail.",
+      "source": "./plugins/doc-standards",
+      "version": "1.1.0",
+      "category": "productivity",
+      "keywords": [
+        "documentation",
+        "runbook",
+        "readme",
+        "primer",
+        "charter",
+        "brief",
+        "executive",
+        "writing",
+        "adr",
+        "decision-record"
+      ]
     }
   ]
 }
