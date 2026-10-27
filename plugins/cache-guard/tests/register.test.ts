@@ -77,6 +77,19 @@ describe('cache-guard', () => {
     expect(w.filled).toEqual([])
   })
 
+  test('Opus 5.5 and Haiku 5.5 get their own prices, not Opus 5 or Haiku 4.5', async ($, on) => {
+    const clock = mock.clock(on, { now: START })
+    const w = world(on, 'Proceed')
+    await $.session.start(session)
+    for (const model of ['claude-opus-5-5', 'claude-haiku-5-5']) {
+      await $.turn.complete({ ...turn(), usage: usage({ model }) })
+      await clock.advance(3 * HOUR)
+      await $.prompt.submit(prompt('hi'))
+    }
+    expect(w.asked[0]).toMatch(/200,502 tokens at \$8\/MTok = \$1\.60 \(a warm turn would have cost \$0\.04\)/)
+    expect(w.asked[1]).toMatch(/200,502 tokens at \$0\.2\/MTok = \$0\.04 \(a warm turn would have cost \$0\.00\)/)
+  })
+
   test('Start new session drops it, runs /clear and puts the prompt back', async ($, on) => {
     const clock = mock.clock(on, { now: START })
     const w = world(on, 'Start new session')

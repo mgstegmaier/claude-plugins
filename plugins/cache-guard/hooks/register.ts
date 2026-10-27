@@ -10,10 +10,12 @@ const BIG_TOKENS = 50000
 const PRICES: Array<[string, number, number]> = [
   ['fable-5-1', 0.25, 20],
   ['fable-5', 1, 20],
+  ['opus-5-5', 0.2, 8],
   ['opus-5', 0.5, 10],
   ['opus-4', 0.5, 10],
   ['sonnet-5', 0.2, 4],
   ['sonnet', 0.3, 6],
+  ['haiku-5', 0.01, 0.2],
   ['haiku', 0.1, 2],
 ]
 

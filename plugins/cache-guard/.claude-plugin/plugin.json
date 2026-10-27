@@ -1,6 +1,6 @@
 {
   "name": "cache-guard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "When a send would re-write a cold prompt cache, a dialog shows the estimated cost with Proceed and Start new session buttons. Adapted from Karan Bansal's cache-tax (MIT). Needs Claude Code 2.1.287 or later.",
   "author": {
     "name": "Michael Stegmaier"
