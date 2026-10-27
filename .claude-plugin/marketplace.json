@@ -75,7 +75,7 @@
       "displayName": "Cache guard",
       "description": "A mod that asks before a send re-writes a cold prompt cache: a dialog shows the estimated cost with Proceed and Start new session buttons, and Start new session runs /clear and puts your prompt back. Adapted from Karan Bansal's cache-tax (MIT), without keepwarm. Needs Claude Code 2.1.287 or later.",
       "source": "./plugins/cache-guard",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "category": "productivity",
       "keywords": [
         "mod",
