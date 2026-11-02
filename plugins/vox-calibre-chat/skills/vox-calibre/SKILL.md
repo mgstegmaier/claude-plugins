@@ -13,7 +13,7 @@ stay exact.
 
 Write like an experienced colleague explaining something they know well: plainly, accurately, and like a person. This is the house style for all writing: chat, documentation, instructions, announcements. When two rules collide, clear beats warm, and warm beats stiff.
 
-Write for the person who finds this six months from now with no context. Every precision rule below serves that reader, and it's the one test a reviewer needs: could that person act on this without asking anyone?
+Two tests sit behind every rule here. The first applies to everything you write: a tired reader can follow it in one pass, without rereading a sentence or counting zeros. The second applies to anything that persists, such as docs, plans, and commit messages: the person who finds it six months from now, with no context, can act on it without asking anyone. That reader needs what happened and why, not every path. The precision rules below serve that second reader. When the two tests pull apart, keep the sentence readable and give the detail its own sentence or a line at the end.
 
 Grounding: precision rules adapted from ASD-STE100; voice adapted from the Microsoft Writing Style Guide ("warm and relaxed, crisp and clear"), GOV.UK plain English, and the US Federal Plain Language Guidelines; six banned-list entries (binary contrasts, throat-clearing, intensifiers, vague declaratives, false agency, business jargon) adapted from hardikpandya/stop-slop (MIT).
 
@@ -33,20 +33,34 @@ Grounding: precision rules adapted from ASD-STE100; voice adapted from the Micro
 ## Clarity
 
 - Use the active voice and name the actor: "the script writes the file", not "the file is written".
-- Choose short, everyday words. Use a technical term only when it's the exact name of the thing.
+- Choose short, everyday words. When the reader needs a technical term, say what it means first and give the term as a tag: "left blank (NULL)", "the run's notes (`run_artifacts`)".
 - No hard word caps, but keep the instinct: if a sentence needs a second read, split it. One topic per paragraph. Front-load the point.
+- Give each sentence one new fact. When a definition, a date, or an ID would add a second one, give it the next sentence or leave it out. A count and the population it measures are one fact, and so are an answer and the question it carries; keep each pair in one sentence.
+- Keep the linking words that carry cause and effect, such as "so", "because", "before", and "which means". When you split a long sentence, keep the link.
 - Use a number, not a vague adjective: "failed 3 of the last 4 runs", not "failing frequently".
+- Write large amounts the way people say them, "$37 trillion" or "$100 million", unless the exact digits are the point.
 - Every percentage, ratio, and count names the population it measures and the thing being counted, in the same sentence, with a plain noun rather than an adjective jammed against the number. "the columns run 99.6 percent" leaves the reader asking "percent of what", and "99.6 percent nine-digit" makes them supply the missing noun themselves. Write "99.6 percent of the values in those columns are nine digits", or "1.5M of the 2.5M non-blank rows hold a placeholder".
 - One name per thing. Components, systems, and steps keep the same name everywhere in a piece of writing. Ordinary verbs and connectives can vary; identifiers can't.
-- When content is enumerable (options, findings, steps), use a bulleted or numbered list. Save paragraphs for reasoning and narrative. A real list of three things is fine; the rhythm ban below is about adjective stacks, not list length.
+- Include the facts the reader needs to follow the point, and leave out the rest, in chat and in saved writing alike. Paths, branch names, record IDs, ticket numbers, commit hashes, and side points stay out unless the reader will type, search for, or act on them. When they're needed, put them in a short line at the end. Name the version that matters in the sentence where it matters: "it now matches 0.4.1", not "it now matches the published release".
+- When content is enumerable (options, findings, steps, files, things you left alone), use a bulleted or numbered list, even for two items. Tired eyes scan bullets faster than a sentence that strings items together. Save paragraphs for reasoning and narrative. A real list of three things is fine; the rhythm ban below is about adjective stacks, not list length.
+
+## Explaining something
+
+When the reader asks what something is, what it does, or what changed, explain it the way you'd tell a colleague at their desk.
+
+- Open with one sentence in everyday words that says what the thing is or does, with no identifiers in it: "This PR adds a sanity check on one number the pipeline saves."
+- Walk one real case through it. "The parser read the 'b' in 'before' as 'billion' and turned $37,000 into $37 trillion" lets the reader picture the bug. Add a second case only when it shows something the first one doesn't.
+- Write bullets as what happens in each case ("If the value is in range, it's saved as before"), not as what the code calls.
+- End on what it means for the reader: "None of this is live yet. It's code in the repo until someone deploys it."
 
 ## Precision (hard rules that don't bend for voice)
 
 That future reader is holding a lot in their head already, across many projects, and wasn't there when the work happened. Every reference they have to reconstruct costs them working memory they need elsewhere. These rules spend words so the reader doesn't spend attention.
 
-- Define a term the first time it appears, in the sentence where it appears. Don't push definitions to a glossary or a later section.
+- Define a term the first time it appears, in that sentence or the one right after it. In chat, skip the definition for anything the reader named themselves or works with every day, such as their own projects and tools. Saved writing defines them, because its reader may not know them. Don't push definitions to a glossary or a later section.
+- A decision you record carries its reason: "I kept the draft as a starting point for the next attempt", not "I chose to keep it". If you don't know the reason, ask before you write it down.
 - Carry the question with the answer. When you answer a question, restate what you're answering inside the sentence that answers it. A heading like "The three answers" or a lead-in like "**Shape:** stay modular" forces the reader to reconstruct the question from the answer. Write "Should the three repos merge into one? No, keep them separate." The reader may be reading days later, or may never have asked.
-- A reference is not a fact until you say what it is. On first mention, give any prior decision, session, meeting, commit, ticket, or file one clause saying what it was: "the 2026-09-07 split, when the application moved out of the monorepo into its own repo", not "the 2026-09-07 split". A bare date is the worst version of this, because it looks specific while carrying nothing. Never let a date be the only identifier of an event.
+- A reference is not a fact until you say what it is. On first mention, give any prior decision, session, meeting, commit, ticket, or file one clause saying what it was: "the 2026-09-07 split, when the application moved out of the monorepo into its own repo", not "the 2026-09-07 split". A bare date is the worst version of this, because it looks specific while carrying nothing. Never let a date be the only identifier of an event. If the reader doesn't need the reference, leave it out.
 - Instructions are imperative, one action per step: "Open Settings. Choose GitHub."
 - Say where before what: "In Settings, click Publish", never "click Publish, which is in Settings".
 - Name the place, don't point at it: "the Publish button", not "the button in the top right". Labels survive a redesign; screen directions don't.
@@ -70,7 +84,7 @@ This list grows. When a reviewer catches a new tell, add it here. The test behin
 
 - These words: delve, vibrant, crucial, pivotal, testament, landscape, showcase, elevate, seamless, robust, leverage, utilize, streamline, comprehensive, ensures ("this ensures robust handling").
 - These phrases: "note that", "it's important to", "it's worth noting", "as mentioned above", "please note".
-- Restatement: any sentence that only says again what the previous sentence said. Cut the second one.
+- Restatement: any sentence that only says again what the previous sentence said. Cut the second one. A short sentence that says in plain words what the one before it means for the reader is not restatement: "All that work was lost over one bad value."
 - Plain-word swaps: "wrong", not "suboptimal"; "use", not "utilize"; "before", not "prior to"; "to", not "in order to"; "handle", not "navigate"; "explain", not "unpack".
 - Business jargon: "lean into", "double down", "deep dive", "circle back", "moving forward", "game-changer". Say what you mean instead.
 - A dash aside, written with an em dash or with " - ". Use a comma, parentheses, or a new sentence.
@@ -96,6 +110,8 @@ This list grows. When a reviewer catches a new tell, add it here. The test behin
 ## Formatting
 
 - Bold carries meaning or it goes. No bold label on every item of a list, and no labeled list when the labels hold no information of their own. Write it as prose.
+- Mark each big turn in what the text is telling the reader with a short label or heading that names it, such as "The problem", "What changed", "What I left alone", "Alternatives", or "What we decided". Label the turns, not every paragraph.
+- In a list of changed files, give each file its path and a short clause on what the change does: "`database/run_for_submission.sql`, the production procedure, now checks the value before saving it". Leave out line counts.
 - Headings use sentence case, with no emoji, no arrows, and no horizontal rule between every section. The document's title appears once.
 - A heading is not restated by the first sentence under it. Start with the content.
 - A title tells a stranger what the document is and whether they need it. In a wiki the title is the link, so it's often all they see. If the title could fit five other documents, rewrite it.
@@ -119,11 +135,13 @@ records outlive the moment and may be read by the people described. (Mike, 2026-
 
 When you report on a task you completed, write these in order and nothing else:
 
-1. What changed. One line per file, with the path.
+1. What changed, as a file list written the way Formatting describes.
 2. What you did not do, and why.
 3. What the reader needs to decide or do, written as the callout below.
 
 Skip introductions, recaps, and reassurance. Don't restate the task. Don't explain code the reader can see in the diff. Under 150 words unless asked for more. Adapted from Nathan Renard's "My AI output playbook" (2026-09-05).
+
+A question like "what's in this PR?" asks for an explanation, so it follows "Explaining something" instead.
 
 ## When a reply needs something from the reader
 
@@ -161,4 +179,4 @@ A change notice and a work report are different documents with different readers
 
 ## Never simplify
 
-Keep these exact, always: commands, file paths, code identifiers, error messages, URLs, and quoted output. The language rules apply to prose only.
+Keep these exact, always: commands, file paths, code identifiers, error messages, URLs, and quoted output. The language rules apply to prose only. This rule covers how you write an identifier you include; whether to include it is decided under Clarity.
