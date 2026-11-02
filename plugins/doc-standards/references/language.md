@@ -9,8 +9,11 @@ plugin installed. All three skills read it: `technical-doc-writer`, `primer-writ
 Write like an experienced colleague explaining something they know well: plainly, accurately,
 and like a person. When two rules collide, clear beats warm, and warm beats stiff.
 
-Write for the person who finds this six months from now with no context. The one test a
-reviewer needs: could that person act on this without asking anyone?
+Two tests sit behind every rule here. First, a tired reader can follow the document in one
+pass, without rereading a sentence or counting zeros. Second, the person who finds it six
+months from now, with no context, can act on it without asking anyone. That reader needs what
+happened and why, not every path. When the two tests pull apart, keep the sentence readable and
+give the detail its own sentence or a line at the end.
 
 ## Voice
 
@@ -38,9 +41,17 @@ reviewer needs: could that person act on this without asking anyone?
 
 - Use the active voice and name the actor: "the script writes the file", not "the file is
   written".
-- Choose short, everyday words. Use a technical term only when it's the exact name of the thing.
+- Choose short, everyday words. When the reader needs a technical term, say what it means first
+  and give the term as a tag: "left blank (NULL)", "the run's notes (`run_artifacts`)".
 - If a sentence needs a second read, split it. One topic per paragraph. Front-load the point.
+- Give each sentence one new fact. When a definition, a date, or an ID would add a second one,
+  give it the next sentence or leave it out. A count and the population it measures are one
+  fact, and so are an answer and the question it carries; keep each pair in one sentence.
+- Keep the linking words that carry cause and effect, such as "so", "because", "before", and
+  "which means". When you split a long sentence, keep the link.
 - Use a number, not a vague adjective: "failed 3 of the last 4 runs", not "failing frequently".
+- Write large amounts the way people say them, "$37 trillion" or "$100 million", unless the
+  exact digits are the point.
 - Every percentage, ratio, and count names the population it measures and the thing being
   counted, in the same sentence, with a plain noun. "The columns run 99.6 percent" leaves the
   reader asking "percent of what". Write "99.6 percent of the values in those columns are nine
@@ -49,23 +60,47 @@ reviewer needs: could that person act on this without asking anyone?
   document, and that name is the one the team already uses (executive-brief-writer rule 19).
   Ordinary verbs can vary;
   identifiers can't.
-- When content is enumerable (problems, options, steps, findings), use a bulleted or numbered
-  list, with a short lead-in sentence. Number only a real sequence or a counted set the prose
-  refers to ("two problems follow"). Save paragraphs for reasoning and narrative.
+- Include the facts the reader needs to follow the point, and leave out the rest. Paths, branch
+  names, record IDs, ticket numbers, commit hashes, and side points stay out unless the reader
+  will type, search for, or act on them. When they're needed, put them in a short line at the
+  end. Name the version that matters in the sentence where it matters: "it now matches 0.4.1",
+  not "it now matches the published release".
+- When content is enumerable (problems, options, steps, findings, files), use a bulleted or
+  numbered list with a short lead-in sentence, even for two items. Tired eyes scan bullets
+  faster than a sentence that strings items together. Number only a real sequence or a counted
+  set the prose refers to ("two problems follow"). Save paragraphs for reasoning and narrative.
+
+## Explaining something
+
+When a document explains what something is, what it does, or what changed, explain it the way
+you'd tell a colleague at their desk.
+
+- Open with one sentence in everyday words that says what the thing is or does, with no
+  identifiers in it: "This PR adds a sanity check on one number the pipeline saves."
+- Walk one real case through it. "The parser read the 'b' in 'before' as 'billion' and turned
+  $37,000 into $37 trillion" lets the reader picture the bug. Add a second case only when it
+  shows something the first one doesn't.
+- Write bullets as what happens in each case ("If the value is in range, it's saved as
+  before"), not as what the code calls.
+- End on what it means for the reader: "None of this is live yet. It's code in the repo until
+  someone deploys it."
 
 ## Precision
 
 These rules spend words so the reader doesn't spend attention.
 
-- Define a term the first time it appears, in the sentence where it appears. Don't push
-  definitions to a glossary or a later section.
+- Define a term the first time it appears, in that sentence or the one right after it. Don't
+  push definitions to a glossary or a later section.
+- A decision you record carries its reason: "we kept the draft as a starting point for the next
+  attempt", not "we chose to keep it". If you don't know the reason, ask before you write it
+  down.
 - Carry the question with the answer. A heading like "The three answers" forces the reader to
   reconstruct the question. Write "Should the three repos merge into one? No, keep them
   separate."
 - A reference is not a fact until you say what it is. On first mention, give any prior
   decision, meeting, commit, ticket, or file one clause saying what it was. A bare date is the
   worst version of this, because it looks specific while carrying nothing. Never let a date be
-  the only identifier of an event.
+  the only identifier of an event. If the reader doesn't need the reference, leave it out.
 - Instructions are imperative, one action per step. Say where before what: "In Settings, click
   Publish". Name the place, don't point at it.
 - Never write "simply", "just", "easy", or "please" in an instruction.
@@ -73,6 +108,12 @@ These rules spend words so the reader doesn't spend attention.
 ## Formatting
 
 - Bold carries meaning or it goes. No bold label on every item of a list.
+- Mark each big turn in what the document is telling the reader with a short heading or label
+  that names it, such as "The problem", "What changed", "What we left alone", "Alternatives", or
+  "What we decided". Label the turns, not every paragraph.
+- In a list of changed files, give each file its path and a short clause on what the change
+  does: "`database/run_for_submission.sql`, the production procedure, now checks the value
+  before saving it". Leave out line counts.
 - Headings use sentence case, with no emoji and no arrows. The document's title appears once.
 - A heading is not restated by the first sentence under it. Start with the content.
 - A title tells a stranger what the document is and whether they need it. If the title could
@@ -100,7 +141,8 @@ already have.
 - These phrases: "note that", "it's important to", "it's worth noting", "as mentioned above",
   "please note".
 - Restatement: any sentence that only says again what the previous sentence said. Cut the
-  second one.
+  second one. A short sentence that says in plain words what the one before it means for the
+  reader is not restatement: "All that work was lost over one bad value."
 - Plain-word swaps: "wrong", not "suboptimal"; "use", not "utilize"; "before", not "prior to";
   "to", not "in order to"; "handle", not "navigate"; "explain", not "unpack".
 - Business jargon: "lean into", "double down", "deep dive", "circle back", "moving forward",
@@ -142,7 +184,8 @@ already have.
 ## Never simplify
 
 Keep these exact: commands, file paths, code identifiers, error messages, URLs, and quoted
-text from the source. The language rules apply to prose only.
+text from the source. The language rules apply to prose only. This rule covers how you write
+an identifier you include; whether to include it is decided under Clarity.
 
 Run `humanizer` as the final pass on anything that circulates outside the team. If it isn't
 installed, check against Wikipedia's "Signs of AI writing" and say the skill wasn't available.
