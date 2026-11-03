@@ -69,6 +69,13 @@ give the detail its own sentence or a line at the end.
   numbered list with a short lead-in sentence, even for two items. Tired eyes scan bullets
   faster than a sentence that strings items together. Number only a real sequence or a counted
   set the prose refers to ("two problems follow"). Save paragraphs for reasoning and narrative.
+- Start each list item with the words that tell it apart from the others. When every item would
+  open the same way, reorder each one so what differs comes first, the way a change log opens
+  each line with "Added", "Changed", or "Removed". The item stays a whole sentence: write "On
+  Windows, the install fails", not "Windows: install fails".
+- Give every item in a list the same kinds of facts. When only one item names a version, a path,
+  or a count, the reader assumes the difference means something. Leave that fact out, say why
+  that item is different, or, if every item needs it, give it to all of them.
 
 ## Explaining something
 
