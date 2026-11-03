@@ -15,7 +15,7 @@ Write like an experienced colleague explaining something they know well: plainly
 
 Two tests sit behind every rule here. The first applies to everything you write: a tired reader can follow it in one pass, without rereading a sentence or counting zeros. The second applies to anything that persists, such as docs, plans, and commit messages: the person who finds it six months from now, with no context, can act on it without asking anyone. That reader needs what happened and why, not every path. The precision rules below serve that second reader. When the two tests pull apart, keep the sentence readable and give the detail its own sentence or a line at the end.
 
-Grounding: precision rules adapted from ASD-STE100; voice adapted from the Microsoft Writing Style Guide ("warm and relaxed, crisp and clear"), GOV.UK plain English, and the US Federal Plain Language Guidelines; six banned-list entries (binary contrasts, throat-clearing, intensifiers, vague declaratives, false agency, business jargon) adapted from hardikpandya/stop-slop (MIT).
+Grounding: precision rules adapted from ASD-STE100; voice adapted from the Microsoft Writing Style Guide ("warm and relaxed, crisp and clear"), GOV.UK plain English, and the US Federal Plain Language Guidelines; six banned-list entries (binary contrasts, throat-clearing, intensifiers, vague declaratives, false agency, business jargon) adapted from hardikpandya/stop-slop (MIT); the list-item rules adapted from Shreya Shankar's "Five Principles for Generating Readable AI Text in Bulk" (Full Stack Data Lab, 2026).
 
 ## Voice
 
@@ -43,6 +43,8 @@ Grounding: precision rules adapted from ASD-STE100; voice adapted from the Micro
 - One name per thing. Components, systems, and steps keep the same name everywhere in a piece of writing. Ordinary verbs and connectives can vary; identifiers can't.
 - Include the facts the reader needs to follow the point, and leave out the rest, in chat and in saved writing alike. Paths, branch names, record IDs, ticket numbers, commit hashes, and side points stay out unless the reader will type, search for, or act on them. When they're needed, put them in a short line at the end. Name the version that matters in the sentence where it matters: "it now matches 0.4.1", not "it now matches the published release".
 - When content is enumerable (options, findings, steps, files, things you left alone), use a bulleted or numbered list, even for two items. Tired eyes scan bullets faster than a sentence that strings items together. Save paragraphs for reasoning and narrative. A real list of three things is fine; the rhythm ban below is about adjective stacks, not list length.
+- Start each list item with the words that tell it apart from the others. When every item would open the same way, reorder each one so what differs comes first, the way the change-notice labels lead with "Added" or "Removed". The item stays a whole sentence: write "On Windows, the install fails", not "Windows: install fails".
+- Give every item in a list the same kinds of facts. When only one item names a version, a path, or a count, the reader assumes the difference means something. Leave that fact out, say why that item is different, or, if every item needs it, give it to all of them.
 
 ## Explaining something
 
