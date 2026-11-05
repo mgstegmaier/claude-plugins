@@ -4,6 +4,8 @@ import type { Register } from 'claude-code'
 // the dialog and the state it needs to price a cold send, without keepwarm.
 const TTL_MS = 60 * 60 * 1000
 const BIG_TOKENS = 50000
+// Prompt origins a person typed: the terminal or desktop box, Remote Control, an SDK host's own turn.
+const PERSON_ORIGINS = new Set(['composer', 'bridge', 'sdk'])
 
 // $ per million tokens, [cache read, 1h cache write], list prices September 2026.
 // Longer family names first: a model id matches the first row it contains.
@@ -102,7 +104,8 @@ export const register: Register = on => {
   })
 
   on('prompt.submit', async ($, e, next) => {
-    if (e.origin.kind === 'plugin') return next(e)
+    // Only a person's own send is worth a dialog; task notifications, schedules, peers and plugins go straight through.
+    if (!PERSON_ORIGINS.has(e.origin.kind)) return next(e)
     if (typeof e.text !== 'string' || e.text.trimStart().startsWith('/')) return next(e)
     const now = await $.clock.now()
     if (!isCold(s, now) || s.ctx < BIG_TOKENS) return next(e)
