@@ -7,7 +7,7 @@ When a send would do that, cache-guard opens a dialog with the estimated cost an
 - Proceed sends the prompt and pays the re-write.
 - Start new session runs `/clear` and puts your prompt back in the box, so you don't retype it.
 
-Dismissing the dialog, or typing an answer under Other, puts the prompt back in the box without sending it, and the next send goes through. The dialog only appears when the cache has been cold for an hour or more and the context holds at least 50,000 tokens. Slash commands are never guarded.
+Dismissing the dialog, or typing an answer under Other, puts the prompt back in the box without sending it, and the next send goes through. The dialog only appears when the cache has been cold for an hour or more and the context holds at least 50,000 tokens. Slash commands are never guarded. Only prompts you send yourself are guarded: a finished background task, a scheduled run, another session's message or a plugin's prompt goes straight through.
 
 cache-guard is the cold-send dialog from [karanb192/cache-tax](https://github.com/karanb192/cache-tax), on its own. It doesn't keep the cache warm and draws nothing above the prompt. If you want keepwarm too, install the upstream cache-tax instead.
 

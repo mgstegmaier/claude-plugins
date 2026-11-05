@@ -77,6 +77,18 @@ describe('cache-guard', () => {
     expect(w.filled).toEqual([])
   })
 
+  test('a background task finishing on a cold cache goes through with no dialog', async ($, on) => {
+    const clock = mock.clock(on, { now: START })
+    const w = world(on, 'Proceed')
+    await $.session.start(session)
+    await $.turn.complete(turn())
+    await clock.advance(3 * HOUR)
+    const r = await $.prompt.submit({ text: 'task done', wait: false, origin: { kind: 'task-notification' } })
+    expect(r.drop).toBe(undefined)
+    expect(w.asked).toEqual([])
+    expect(w.entered).toEqual(['task done'])
+  })
+
   test('Opus 5.5 and Haiku 5.5 get their own prices, not Opus 5 or Haiku 4.5', async ($, on) => {
     const clock = mock.clock(on, { now: START })
     const w = world(on, 'Proceed')
