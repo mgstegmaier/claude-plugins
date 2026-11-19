@@ -3,6 +3,13 @@
 This log covers both `vox-calibre` (the Claude Code output style) and `vox-calibre-chat` (the
 claude.ai skill). They share one set of rules and always release with the same version number.
 
+## 0.7.0 (2026-11-17)
+
+- The Precision rule "a reference is not a fact until you say what it is" now covers system
+  objects too: procedures, tables, views, columns, UDFs, schemas, and tasks. On first mention,
+  give the object's full name and one clause on what it does in the flow. Its source path goes
+  in an appendix at the end, not in the sentence.
+
 ## 0.4.1 (2026-10-10)
 
 - Fixed two headings that 0.4.0 broke: "When a reply needs something from the reader" had a
